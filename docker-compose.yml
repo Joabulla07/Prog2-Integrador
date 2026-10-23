@@ -1,0 +1,9 @@
+services:
+  db_concesionaria:
+    image: sql-concesionaria:latest
+    container_name: sql_concesionaria
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=Concesionaria2026!
+    ports:
+      - "1433:1433"
