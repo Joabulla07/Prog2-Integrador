@@ -1,14 +1,34 @@
-# 1. Construir la imagen personalizada
-Write-Host "Construyendo imagen de SQL Server con sqlcmd..."
-podman build -t sql-concesionaria:latest .
-if ($LASTEXITCODE -ne 0) { Write-Error "Falló la construcción de la imagen."; exit 1 }
+# Detectar automáticamente si usar Podman o Docker
+if (Get-Command podman -ErrorAction SilentlyContinue) {
+    $engine = "podman"
+    $composeCmd = @("podman", "compose")
+} elseif (Get-Command docker -ErrorAction SilentlyContinue) {
+    $engine = "docker"
+    $composeCmd = @("docker", "compose")
+} else {
+    Write-Error "No se encontró ni Podman ni Docker en el sistema."
+    exit 1
+}
+
+Write-Host "Motor de contenedores detectado: $engine"
+
+# 1. Construir la imagen
+Write-Host "Construyendo imagen de SQL Server..."
+& $engine build -t sql-concesionaria:latest .
+if ($LASTEXITCODE -ne 0) {
+    Write-Error "Error al compilar la imagen."
+    exit $LASTEXITCODE
+}
 
 # 2. Levantar el contenedor
 Write-Host "Iniciando SQL Server..."
-podman compose up -d
-if ($LASTEXITCODE -ne 0) { Write-Error "Falló el inicio del contenedor."; exit 1 }
+& $composeCmd[0] $composeCmd[1] up -d
+if ($LASTEXITCODE -ne 0) {
+    Write-Error "Error al levantar el contenedor de la base de datos."
+    exit $LASTEXITCODE
+}
 
-# 3. Esperar a que el motor esté listo y que se ejecuten los scripts de inicialización
+# 3. Esperar inicialización y ejecución de scripts SQL
 Write-Host "Esperando 30 segundos para inicialización..."
 Start-Sleep -Seconds 30
 
