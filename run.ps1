@@ -1,20 +1,20 @@
 # Detectar automáticamente si usar Podman o Docker
-if (Get-Command podman -ErrorAction SilentlyContinue) {
+if (Get-Command podman-compose -ErrorAction SilentlyContinue) {
     $engine = "podman"
-    $composeCmd = @("podman", "compose")
+    $composeCmd = @("podman-compose")
 } elseif (Get-Command docker -ErrorAction SilentlyContinue) {
     $engine = "docker"
     $composeCmd = @("docker", "compose")
 } else {
-    Write-Error "No se encontró ni Podman ni Docker en el sistema."
+    Write-Error "No se encontró ni podman-compose ni Docker en el sistema."
     exit 1
 }
 
 Write-Host "Motor de contenedores detectado: $engine"
 
-# 1. Construir la imagen
+# 1. Construir la imagen usando docker-compose (lee variables del .env)
 Write-Host "Construyendo imagen de SQL Server..."
-& $engine build -t sql-concesionaria:latest .
+& $composeCmd build
 if ($LASTEXITCODE -ne 0) {
     Write-Error "Error al compilar la imagen."
     exit $LASTEXITCODE
@@ -22,7 +22,7 @@ if ($LASTEXITCODE -ne 0) {
 
 # 2. Levantar el contenedor
 Write-Host "Iniciando SQL Server..."
-& $composeCmd[0] $composeCmd[1] up -d
+& $composeCmd up -d
 if ($LASTEXITCODE -ne 0) {
     Write-Error "Error al levantar el contenedor de la base de datos."
     exit $LASTEXITCODE
