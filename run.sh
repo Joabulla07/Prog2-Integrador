@@ -39,3 +39,15 @@ fi
 # 3. Esperar inicialización y ejecución de scripts SQL
 echo "Esperando 30 segundos para inicialización..."
 sleep 30
+
+# 4. Compilar el proyecto Java
+echo "Compilando el proyecto..."
+javac -d out/production/Prog2-Integrador src/concesionaria/*.java
+if [ $? -ne 0 ]; then
+    echo "Error al compilar el proyecto."
+    exit 1
+fi
+
+# 5. Ejecutar el main del proyecto
+echo "Ejecutando el main del proyecto..."
+java -cp out/production/Prog2-Integrador concesionaria.Main
