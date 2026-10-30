@@ -1,23 +1,32 @@
 #!/bin/bash
 
-# Verificar que Docker esté instalado
-if ! command -v docker &> /dev/null; then
-    echo "Error: Docker no está instalado"
+# Detectar motor de contenedores (Docker o Podman)
+if command -v docker &> /dev/null; then
+    ENGINE="docker"
+elif command -v podman &> /dev/null; then
+    ENGINE="podman"
+else
+    echo "Error: No se encontró Docker ni Podman"
     echo ""
-    echo "Instala Docker Desktop desde:"
-    echo "  https://www.docker.com/products/docker-desktop"
+    echo "Instala uno de los dos:"
+    echo "  Docker Desktop: https://www.docker.com/products/docker-desktop"
+    echo "  Podman:         https://podman.io/docs/installation"
     echo ""
-    echo "Asegúrate de que Docker Desktop esté corriendo antes de ejecutar este script."
+    echo "Asegúrate de que el motor esté corriendo antes de ejecutar este script."
     exit 1
 fi
 
-echo "Motor de contenedores: Docker"
+echo "Motor de contenedores: $ENGINE"
 
-# Determinar comando de compose (docker compose o docker-compose)
-if command -v docker-compose &> /dev/null; then
-    COMPOSE_CMD="docker-compose"
+# Determinar comando de compose (plugin "<motor> compose" o "<motor>-compose")
+if command -v "$ENGINE-compose" &> /dev/null; then
+    COMPOSE_CMD="$ENGINE-compose"
+elif $ENGINE compose version &> /dev/null; then
+    COMPOSE_CMD="$ENGINE compose"
 else
-    COMPOSE_CMD="docker compose"
+    echo "Error: no se encontró compose para $ENGINE"
+    echo "Instala '$ENGINE-compose' o el plugin '$ENGINE compose'."
+    exit 1
 fi
 
 # 1. Construir la imagen usando docker-compose (lee variables del .env)

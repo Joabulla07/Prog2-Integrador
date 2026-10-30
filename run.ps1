@@ -1,26 +1,38 @@
-# Verificar que Docker esté instalado
-if (-not (Get-Command docker -ErrorAction SilentlyContinue)) {
-    Write-Error "Docker no está instalado o no está en el PATH."
+# Detectar motor de contenedores (Docker o Podman)
+if (Get-Command docker -ErrorAction SilentlyContinue) {
+    $engine = "docker"
+} elseif (Get-Command podman -ErrorAction SilentlyContinue) {
+    $engine = "podman"
+} else {
+    Write-Error "No se encontró Docker ni Podman en el PATH."
     Write-Host ""
-    Write-Host "Instala Docker Desktop desde:"
-    Write-Host "  https://www.docker.com/products/docker-desktop"
+    Write-Host "Instala uno de los dos:"
+    Write-Host "  Docker Desktop: https://www.docker.com/products/docker-desktop"
+    Write-Host "  Podman:         https://podman.io/docs/installation"
     Write-Host ""
-    Write-Host "Asegúrate de que Docker Desktop esté corriendo antes de ejecutar este script."
+    Write-Host "Asegúrate de que el motor esté corriendo antes de ejecutar este script."
     exit 1
 }
 
-# Determinar comando de compose (docker compose o docker-compose)
-if (Get-Command docker-compose -ErrorAction SilentlyContinue) {
-    $composeCmd = "docker-compose"
+Write-Host "Motor de contenedores: $engine"
+
+# Determinar comando de compose (plugin "<motor> compose" o "<motor>-compose")
+if (Get-Command "$engine-compose" -ErrorAction SilentlyContinue) {
+    $composeExe = "$engine-compose"
+    $composePrefix = @()
 } else {
-    $composeCmd = "docker compose"
+    & $engine compose version *> $null
+    if ($LASTEXITCODE -ne 0) {
+        Write-Error "No se encontró compose para $engine. Instala '$engine-compose' o el plugin '$engine compose'."
+        exit 1
+    }
+    $composeExe = $engine
+    $composePrefix = @("compose")
 }
 
-Write-Host "Motor de contenedores: Docker"
-
-# 1. Construir la imagen usando docker-compose (lee variables del .env)
+# 1. Construir la imagen usando compose (lee variables del .env)
 Write-Host "Construyendo imagen de SQL Server..."
-& $composeCmd build
+& $composeExe @composePrefix build
 if ($LASTEXITCODE -ne 0) {
     Write-Error "Error al compilar la imagen."
     exit $LASTEXITCODE
@@ -28,7 +40,7 @@ if ($LASTEXITCODE -ne 0) {
 
 # 2. Levantar el contenedor
 Write-Host "Iniciando SQL Server..."
-& $composeCmd up -d
+& $composeExe @composePrefix up -d
 if ($LASTEXITCODE -ne 0) {
     Write-Error "Error al levantar el contenedor de la base de datos."
     exit $LASTEXITCODE

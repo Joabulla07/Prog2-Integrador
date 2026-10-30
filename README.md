@@ -2,10 +2,12 @@
 
 ## Requisitos Previos
 
-Este proyecto requiere Docker para ejecutar la base de datos SQL Server.
+Este proyecto requiere Docker o Podman para ejecutar la base de datos SQL Server.
 
-1. Instalar [Docker Desktop](https://www.docker.com/products/docker-desktop)
-2. Iniciar Docker Desktop y asegurarse de que esté corriendo
+1. Instalar [Docker Desktop](https://www.docker.com/products/docker-desktop) o [Podman](https://podman.io/docs/installation) (con `podman compose` o `podman-compose`)
+2. Asegurarse de que el motor esté corriendo (en Podman: `podman machine start` en Windows/macOS)
+
+Los scripts usan Docker si está disponible; si no, usan Podman.
 
 ## Ejecución
 
