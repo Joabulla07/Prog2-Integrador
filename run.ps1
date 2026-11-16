@@ -49,11 +49,3 @@ if ($LASTEXITCODE -ne 0) {
 # 3. Esperar inicialización y ejecución de scripts SQL
 Write-Host "Esperando 30 segundos para inicialización..."
 Start-Sleep -Seconds 30
-
-# 4. Compilar el proyecto Java
-Write-Host "Compilando el proyecto..."
-javac -d out\production\Prog2-Integrador src\concesionaria\*.java
-if ($LASTEXITCODE -ne 0) {
-    Write-Error "Error al compilar el proyecto."
-    exit $LASTEXITCODE
-}

@@ -49,11 +49,3 @@ fi
 echo "Esperando 30 segundos para inicialización..."
 sleep 30
 
-# 4. Compilar el proyecto Java
-echo "Compilando el proyecto..."
-javac -d out/production/Prog2-Integrador src/concesionaria/*.java
-if [ $? -ne 0 ]; then
-    echo "Error al compilar el proyecto."
-    exit 1
-fi
-

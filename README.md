@@ -1,5 +1,9 @@
 # Prog2-Integrador
 
+## Agentes de IA
+
+Este proyecto está optimizado para trabajar con agentes de IA (Cline, Windsurf, Copilot, etc.). Consulta el directorio [`.agents/`](./.agents/) para obtener instrucciones, contexto y habilidades especiales.
+
 ## Requisitos Previos
 
 Este proyecto requiere Docker o Podman para ejecutar la base de datos SQL Server.

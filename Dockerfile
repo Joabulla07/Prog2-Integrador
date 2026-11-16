@@ -18,14 +18,14 @@ while ! /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "$MSSQL_SA_PASSWORD"
     sleep 1\n\
 done\n\
 # Verificar si la base de datos ya fue creada previamente\n\
-DB_EXISTE=$(/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "$MSSQL_SA_PASSWORD" -C -h -1 -W -Q "SET NOCOUNT ON; SELECT database_id FROM sys.databases WHERE name = '\''concesionaria'\''")\n\
+DB_EXISTE=$(/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "$MSSQL_SA_PASSWORD" -C -h -1 -W -Q "SET NOCOUNT ON; SELECT database_id FROM sys.databases WHERE name = '\''ConcesionariaTFI'\''")\n\
 if [ -z "$DB_EXISTE" ]; then\n\
     echo "Base no encontrada. Creando esquema e insertando datos..."\n\
     /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "$MSSQL_SA_PASSWORD" -C -i /scripts/01_esquema.sql\n\
-    /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "$MSSQL_SA_PASSWORD" -C -d concesionaria -i /scripts/02_datos.sql\n\
-    echo "Base de datos concesionaria inicializada con éxito."\n\
+    /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "$MSSQL_SA_PASSWORD" -C -d ConcesionariaTFI -i /scripts/02_datos.sql\n\
+    echo "Base de datos ConcesionariaTFI inicializada con éxito."\n\
 else\n\
-    echo "La base de datos concesionaria ya existe. Omitiendo scripts iniciales."\n\
+    echo "La base de datos ConcesionariaTFI ya existe. Omitiendo scripts iniciales."\n\
 fi\n\
 wait' > /entrypoint.sh && \
     chmod +x /entrypoint.sh
