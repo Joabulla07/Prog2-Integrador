@@ -57,6 +57,3 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-# 5. Ejecutar el main del proyecto
-echo "Ejecutando el main del proyecto..."
-java -cp out/production/Prog2-Integrador concesionaria.Main

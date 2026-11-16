@@ -57,7 +57,3 @@ if ($LASTEXITCODE -ne 0) {
     Write-Error "Error al compilar el proyecto."
     exit $LASTEXITCODE
 }
-
-# 5. Ejecutar el main del proyecto
-Write-Host "Ejecutando el main del proyecto..."
-java -cp out\production\Prog2-Integrador concesionaria.Main
