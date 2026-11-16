@@ -27,7 +27,7 @@
 
 ## 2. Decisiones Clave de Arquitectura y Modelado
 
-### 2.1 Estructura de Paquetes (`com.utn.frre.concesionaria`)
+### 2.1 Estructura de Paquetes (`concesionaria`)
 
 * `config`: carga de entorno con `java-dotenv` y fábrica de conexiones `Sql2o`.
 * `model`: clase abstracta `Vehiculo` (JavaBean/POJO) y subclases `Automovil`, `Camioneta`, `Motocicleta`.
@@ -56,63 +56,46 @@
 
 ## 3. Tablero de User Stories (Listas para CodeAR)
 
-### US-01 — Base de Datos MSSQL en Docker, Tablas y Datos Semilla
+### US-01 — Base de Datos MSSQL en Docker, Tablas y Datos Semilla ✅
 
 * **Contexto del TP**: Gestión multimarca (Automóviles, Camionetas, Motocicletas), 0 km vs. usados (con kilometraje), y atributos de directivos (Marca, Modelo, Año, Color, Carrocería o tipo de Motocicleta).
 * **Objetivo**: Levantar MSSQL en Docker y crear el esquema relacional para persistir los vehículos multimarca.
-* **Especificaciones técnicas**:
-  * **Docker**: levantar contenedor MSSQL (ej. `mcr.microsoft.com/mssql/server:2022-latest`), exponiendo puerto `1433`, `ACCEPT_EULA=Y` y `MSSQL_SA_PASSWORD`.
+* **Estado**: COMPLETADA
+* **Implementación actual**:
+  * **Docker**: usa `mcr.microsoft.com/mssql/server:2022-latest`, puerto `1433`, `ACCEPT_EULA=Y`, `MSSQL_SA_PASSWORD` desde `.env`.
   * **Base de datos**: `ConcesionariaTFI`.
-  * **Tabla `Vehiculos`**:
-    * `codigo_inventario` (`VARCHAR(20) PRIMARY KEY`) — ej. `AUTO-001`, `CAM-002`, `MOTO-003`.
-    * `tipo_vehiculo` (`VARCHAR(20) NOT NULL`) — discriminador tipado con `TipoVehiculo`: `'AUTOMOVIL'`, `'CAMIONETA'`, `'MOTOCICLETA'`.
-    * `marca` (`VARCHAR(60) NOT NULL`).
-    * `modelo` (`VARCHAR(60) NOT NULL`).
-    * `anio` (`INT NOT NULL`).
-    * `color` (`VARCHAR(40) NOT NULL`).
-    * `estado_unidad` (`VARCHAR(15) NOT NULL`) — `'CERO_KM'` o `'USADO'`.
-    * `kilometraje` (`INT NOT NULL DEFAULT 0`).
-    * `precio_lista` (`DECIMAL(14,2) NOT NULL`).
-    * `carroceria` (`VARCHAR(60) NULL`) — texto libre requerido si `tipo_vehiculo` es `'AUTOMOVIL'` o `'CAMIONETA'`.
-    * `tipo_motocicleta` (`VARCHAR(60) NULL`) — texto libre requerido si `tipo_vehiculo` es `'MOTOCICLETA'`.
-    * `CONSTRAINT CK_Vehiculos_Tipo CHECK (tipo_vehiculo IN ('AUTOMOVIL', 'CAMIONETA', 'MOTOCICLETA'))`
-    * `CONSTRAINT CK_Vehiculos_Estado CHECK (estado_unidad IN ('CERO_KM', 'USADO'))`
-    * `CONSTRAINT CK_Vehiculos_Estado_Km CHECK ((estado_unidad = 'CERO_KM' AND kilometraje = 0) OR (estado_unidad = 'USADO' AND kilometraje > 0))`
-    * `CONSTRAINT CK_Vehiculos_Estructura CHECK ((tipo_vehiculo IN ('AUTOMOVIL', 'CAMIONETA') AND carroceria IS NOT NULL AND LEN(LTRIM(RTRIM(carroceria))) > 0 AND tipo_motocicleta IS NULL) OR (tipo_vehiculo = 'MOTOCICLETA' AND tipo_motocicleta IS NOT NULL AND LEN(LTRIM(RTRIM(tipo_motocicleta))) > 0 AND carroceria IS NULL))`
-  * **Datos semilla (`seed.sql`)**: insertar al menos 6 registros (1 auto 0 km, 1 auto usado, 1 camioneta 0 km, 1 camioneta usada, 1 moto 0 km, 1 moto usada).
-* **Criterios de aceptación**:
-  * El contenedor MSSQL arranca y acepta conexiones en `localhost:1433`.
-  * Los `CHECK` rechazan inconsistencias (`tipo_vehiculo` inválido, `CERO_KM` con `kilometraje > 0`, `MOTOCICLETA` con `carroceria`, o textos vacíos).
-  * `SELECT * FROM Vehiculos` devuelve los datos semilla.
+  * **Tabla `Vehiculos`**: implementada con todas las columnas y constraints especificadas.
+  * **Datos semilla**: 12 registros en `sql/02_datos.sql` (4 autos, 4 camionetas, 4 motos).
+  * **Scripts**: `run.sh` y `run.ps1` solo levantan contenedor y esperan inicialización (sin compilar Java).
+* **Criterios de aceptación**: CUMPLIDOS
 
-### US-02 — Configuración de Entorno (`java-dotenv`) y Conexión `Sql2o`
+### US-02 — Configuración de Entorno (`java-dotenv`) y Conexión `Sql2o` ✅
 
 * **Contexto del TP**: Separación en capas ("Diseño vs. Negocio" / Interfaz, Lógica, Datos) y tipos de datos.
 * **Objetivo**: Centralizar la lectura de variables de entorno con `java-dotenv` y la fábrica de conexiones `Sql2o`.
-* **Especificaciones técnicas**:
-  * **Archivos en raíz**: `.env` (`DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `DB_ENCRYPT`, `DB_TRUST_SERVER_CERTIFICATE`) y `.env.example`.
-  * **Clase `com.utn.frre.concesionaria.config.DatabaseConfig`**:
-    * Carga `Dotenv dotenv = Dotenv.configure().ignoreIfMissing().load();`.
-    * Construye la URL JDBC de MSSQL: `jdbc:sqlserver://<host>:<port>;databaseName=<db>;encrypt=<encrypt>;trustServerCertificate=<trust>`.
-    * Expone `public static Sql2o getSql2o()`.
-    * Documentar con JavaDoc (`@return`, `@throws`) y comentarios `//`.
-* **Criterios de aceptación**:
-  * `DatabaseConfig.getSql2o().open()` abre y cierra una conexión válida contra MSSQL en Docker sin credenciales hardcodeadas.
+* **Estado**: COMPLETADA (implementación simplificada)
+* **Implementación actual**:
+  * **Archivos en raíz**: `.env` (`DB_URL`, `DB_USER`, `DB_PASS`) y `.env.example`.
+  * **Clases en `concesionaria.config`**:
+    * `Config.java`: carga `Dotenv dotenv = Dotenv.configure().ignoreIfMissing().load()`, expone `DB_URL`, `DB_USER`, `DB_PASS` como campos estáticos finales.
+    * `ConexionDB.java`: expone `public static final Sql2o sql2o` usando las credenciales de `Config`.
+  * **Dependencias**: `java-dotenv-5.2.2.jar` y `sql2o-1.6.0.jar` en `lib/`.
+* **Criterios de aceptación**: CUMPLIDOS (variante: usa DB_URL prearmado en lugar de construir desde variables separadas)
 
 ### US-03 — Estructura de Paquetes y Estándar de Documentación
 
 * **Contexto del TP**: Esquema "Diseño vs. Negocio", abstracción, modelado, tipos de datos y documentación interna vía remarks y JavaDoc.
 * **Objetivo**: Dejar lista la arquitectura de paquetes y la convención de documentación.
 * **Especificaciones técnicas**:
-  * **Paquetes base**:
-    * `com.utn.frre.concesionaria.config`
-    * `com.utn.frre.concesionaria.model`
-    * `com.utn.frre.concesionaria.model.enums`
-    * `com.utn.frre.concesionaria.interfaces`
-    * `com.utn.frre.concesionaria.repository`
-    * `com.utn.frre.concesionaria.service`
-    * `com.utn.frre.concesionaria.exception`
-    * `com.utn.frre.concesionaria.ui`
+  * **Paquetes base** (implementación actual usa `concesionaria` en lugar de `com.utn.frre.concesionaria`):
+    * `concesionaria.config`
+    * `concesionaria.model`
+    * `concesionaria.model.enums`
+    * `concesionaria.interfaces`
+    * `concesionaria.repository`
+    * `concesionaria.service`
+    * `concesionaria.exception`
+    * `concesionaria.ui`
   * **Documentación**: JavaDoc (`/** ... */`) en clases públicas, interfaces, enums y métodos públicos con `@param`, `@return`, `@throws`; comentarios `//` en lógica relevante.
 * **Criterios de aceptación**:
   * Estructura creada y `javac` compila sin errores.
@@ -154,7 +137,7 @@
   * `EvaluatableComercial`: `String obtenerCategoriaComercial();` y `boolean esAptoEntregaInmediata();`.
   * JavaDoc explicando contratos y precondiciones.
 * **Criterios de aceptación**:
-  * Interfaces declaradas en `com.utn.frre.concesionaria.interfaces` con JavaDoc.
+  * Interfaces declaradas en `concesionaria.interfaces` con JavaDoc.
 
 ### US-07 — Clase Abstracta `Vehiculo` (POJO / JavaBean + Wrappers) y Subclases (`model`)
 
@@ -190,7 +173,7 @@
 * **Objetivo**: Implementar persistencia en MSSQL usando `Sql2o` y trabajar con colecciones en memoria (`List<Vehiculo>`).
 * **Especificaciones técnicas**:
   * Interfaz `VehiculoRepository`: `guardar`, `buscarPorCodigo`, `listarTodos`, `listarPorEstado`, `listarPorTipo`, `eliminarPorCodigo`.
-  * `MssqlVehiculoRepository implements VehiculoRepository`: usa `DatabaseConfig.getSql2o()`, consultas parametrizadas con `Sql2o`, persiste `tipo_vehiculo` desde `vehiculo.obtenerTipoVehiculo().name()`, lee `tipo_vehiculo` mediante `TipoVehiculo.fromString(...)` junto con `carroceria` y `tipo_motocicleta` como `String` para instanciar `Automovil`, `Camioneta` o `Motocicleta`, devuelve `ArrayList<Vehiculo>` y traduce errores `Sql2oException` a `PersistenciaException`.
+  * `MssqlVehiculoRepository implements VehiculoRepository`: usa `ConexionDB.sql2o` (variante de `DatabaseConfig.getSql2o()`), consultas parametrizadas con `Sql2o`, persiste `tipo_vehiculo` desde `vehiculo.obtenerTipoVehiculo().name()`, lee `tipo_vehiculo` mediante `TipoVehiculo.fromString(...)` junto con `carroceria` y `tipo_motocicleta` como `String` para instanciar `Automovil`, `Camioneta` o `Motocicleta`, devuelve `ArrayList<Vehiculo>` y traduce errores `Sql2oException` a `PersistenciaException`.
 * **Criterios de aceptación**:
   * Altas, consultas, filtros por `TipoVehiculo` / `EstadoUnidad` y bajas persisten en `Vehiculos` de Docker MSSQL y se devuelven en `List<Vehiculo>`.
 
@@ -245,7 +228,7 @@
 * **Contexto del TP**: Esquema de capas y ejecución en consola separada limpia en negro.
 * **Objetivo**: Abrir una ventana de consola nueva en negro al ejecutar `ConsolaApp`, compilando en la consola/IDE habitual.
 * **Especificaciones técnicas**:
-  * `ejecutar.bat` en raíz con `chcp 65001 >nul` y `start "Concesionaria Multimarcas - TFI Programacion II" cmd /k "cls && java -cp "out;lib/*" com.utn.frre.concesionaria.ui.ConsolaApp"`.
+  * `ejecutar.bat` en raíz con `chcp 65001 >nul` y `start "Concesionaria Multimarcas - TFI Programacion II" cmd /k "cls && java -cp "out;lib/*" concesionaria.ui.ConsolaApp"`.
   * Opcional `LauncherConsola.java` en `ui` usando `ProcessBuilder` con `cmd.exe /c start ...` y `System.exit(0)`.
 * **Criterios de aceptación**:
   * Al correr `ejecutar.bat`, se abre una consola nueva en negro mostrando solo el encabezado y el menú de `ConsolaApp`.
@@ -255,7 +238,7 @@
 * **Contexto del TP**: Cierre del TFI de Programación II (UTN FRRe), JavaDoc y datos de portada.
 * **Objetivo**: Auditar el cumplimiento completo y generar JavaDoc.
 * **Especificaciones técnicas**:
-  * Ejecutar `javadoc -d docs -sourcepath src -subpackages com.utn.frre.concesionaria`.
+  * Ejecutar `javadoc -d docs -sourcepath src -subpackages concesionaria`.
   * Probar persistencia real reiniciando la consola separada y verificando datos en MSSQL.
   * Completar datos del alumno (Alumno, Legajo, Email) en el documento del TFI.
 * **Criterios de aceptación**:
