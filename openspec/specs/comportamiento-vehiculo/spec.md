@@ -76,14 +76,3 @@ El sistema SHALL permitir validar reglas del dominio y obtener errores específi
 #### Scenario: Obtener errores de validación
 - **WHEN** se invoca obtenerErroresValidacion() en un vehículo con múltiples errores
 - **THEN** se devuelve una lista con todos los errores específicos (ej. año fuera de rango, kilometraje negativo)
-
-### Requirement: Comparación de vehículos
-El sistema SHALL permitir comparar vehículos por precio y antigüedad mediante la interfaz Comparable.
-
-#### Scenario: Comparación por precio
-- **WHEN** se invoca compararPorPrecio(vehiculoA, vehiculoB)
-- **THEN** se devuelve negativo si A es más barato, 0 si igual, positivo si A es más caro
-
-#### Scenario: Comparación por antigüedad
-- **WHEN** se invoca compararPorAntiguedad(vehiculoA, vehiculoB)
-- **THEN** se devuelve negativo si A es más nuevo, 0 si igual año, positivo si A es más antiguo

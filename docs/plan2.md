@@ -168,7 +168,25 @@
 * **Criterios de aceptación**:
   * Dos instancias con el mismo código dan `equals == true` y mismo `hashCode`; `toString()` muestra el detalle de cada subtipo.
 
-### US-09 — Repositorio Genérico, Persistencia MSSQL con `Sql2o` y Colecciones (`repository`)
+### US-09 — Ordenamiento de Vehículos con `Comparable` y `Comparator`
+
+* **Contexto del TP**: Uso de colecciones, interfaces y ordenamiento dinámico de datos del dominio.
+* **Objetivo**: Incorporar reglas estándar de Java para ordenar vehículos por criterios naturales y alternativos.
+* **Especificaciones técnicas**:
+  * `Vehiculo` debe implementar `Comparable<Vehiculo>` y sobrescribir `compareTo(Vehiculo otro)`.
+  * El orden natural debe comparar exclusivamente `codigoInventario` normalizado; precio, año y marca/modelo quedan en comparadores externos.
+  * Los valores nulos deben manejarse sin lanzar `NullPointerException`, ubicando los vehículos incompletos al final.
+  * Implementar comparadores externos `Comparator<Vehiculo>` para al menos: año, marca y modelo, y precio.
+  * Utilizar `Collections.sort(...)` o `List.sort(...)` sobre `List<Vehiculo>` para aplicar los comparadores.
+  * Si se conserva la interfaz personalizada `Comparable.java`, reemplazarla por una implementación compatible con `java.lang.Comparable` o eliminarla para evitar ambigüedad con la interfaz estándar.
+  * Agregar JavaDoc a `compareTo(...)` y a los comparadores o métodos que los utilicen.
+* **Criterios de aceptación**:
+  * `Vehiculo` puede ordenarse con `Collections.sort(vehiculos)` mediante su orden natural.
+  * Las colecciones pueden ordenarse por año, marca/modelo y precio mediante `Comparator<Vehiculo>`.
+  * Vehículos con precio nulo no rompen el ordenamiento.
+  * Los métodos de ordenamiento tienen pruebas que verifican el criterio aplicado y el resultado esperado.
+
+### US-10 — Repositorio Genérico, Persistencia MSSQL con `Sql2o` y Colecciones (`repository`)
 
 * **Contexto del TP**: Capa de datos, uso de Genéricos (Generics) y organización de datos utilizando Colecciones.
 * **Objetivo**: Definir una arquitectura genérica reutilizable de repositorio e implementar la persistencia en MSSQL usando `Sql2o` junto con colecciones en memoria (`List<Vehiculo>` y `Map`).
@@ -180,7 +198,7 @@
 * **Criterios de aceptación**:
   * `RepositorioGenerico` e `IndiceGenerico` compilan con tipado seguro; altas, consultas, filtros por `TipoVehiculo` / `EstadoUnidad` y bajas persisten en `Vehiculos` de Docker MSSQL y se devuelven en `List<Vehiculo>`.
 
-### US-10 — Lógica de Negocio `ConcesionariaService` y Reportes Directivos (`service`)
+### US-11 — Lógica de Negocio `ConcesionariaService` y Reportes Directivos (`service`)
 
 * **Contexto del TP**: Separación "Diseño vs. Negocio", abstracción, polimorfismo y requerimientos de directivos.
 * **Objetivo**: Centralizar validaciones de dominio, reglas 0 km/usado y reportes para directivos.
@@ -192,7 +210,7 @@
 * **Criterios de aceptación**:
   * Ninguna regla de validación queda en `ConsolaApp` ni en `Vehiculo`; reporte directivo completo.
 
-### US-11 — Controles de *Data-Entry* y Wrappers (`ui`)
+### US-12 — Controles de *Data-Entry* y Wrappers (`ui`)
 
 * **Contexto del TP**: Interacción con el usuario (menús de consola, controles de *data-entry*, mensajes), aplicación de Wrappers y métodos genéricos.
 * **Objetivo**: Crear utilidades de entrada segura con `Scanner` y wrappers (`Integer`, `Double`).
@@ -205,7 +223,7 @@
 * **Criterios de aceptación**:
   * Entradas inválidas o vacías muestran mensaje claro y reintentan sin romper el programa.
 
-### US-12 — Menú Interactivo de Consola `ConsolaApp` (`ui`)
+### US-13 — Menú Interactivo de Consola `ConsolaApp` (`ui`)
 
 * **Contexto del TP**: Interacción con el usuario mediante menú de consola con opciones y mensajes.
 * **Objetivo**: Implementar el menú interactivo conectado a `ConcesionariaService`.
@@ -226,7 +244,7 @@
 * **Criterios de aceptación**:
   * Todas las opciones operan contra MSSQL y muestran mensajes claros de éxito o error.
 
-### US-13 — Consola Separada en Negro al Ejecutar (`ui` + script)
+### US-14 — Consola Separada en Negro al Ejecutar (`ui` + script)
 
 * **Contexto del TP**: Esquema de capas y ejecución en consola separada limpia en negro.
 * **Objetivo**: Abrir una ventana de consola nueva en negro al ejecutar `ConsolaApp`, compilando en la consola/IDE habitual.
@@ -236,7 +254,7 @@
 * **Criterios de aceptación**:
   * Al correr `ejecutar.bat`, se abre una consola nueva en negro mostrando solo el encabezado y el menú de `ConsolaApp`.
 
-### US-14 — Verificación Integral, Generación de JavaDoc y Cierre de Entrega
+### US-15 — Verificación Integral, Generación de JavaDoc y Cierre de Entrega
 
 * **Contexto del TP**: Cierre del TFI de Programación II (UTN FRRe), JavaDoc y datos de portada.
 * **Objetivo**: Auditar el cumplimiento completo y generar JavaDoc.

@@ -6,6 +6,7 @@ import concesionaria.model.enums.EstadoUnidad;
 import concesionaria.model.enums.TipoVehiculo;
 
 import java.io.Serializable;
+import java.util.Locale;
 import java.util.Objects;
 
 /**
@@ -18,7 +19,7 @@ import java.util.Objects;
  * específico de cada tipo de vehículo.
  * </p>
  */
-public abstract class Vehiculo implements Identificable, EvaluatableComercial, Serializable {
+public abstract class Vehiculo implements Identificable, EvaluatableComercial, Serializable, Comparable<Vehiculo> {
 
     private static final long serialVersionUID = 1L;
 
@@ -286,6 +287,40 @@ public abstract class Vehiculo implements Identificable, EvaluatableComercial, S
     }
 
     /**
+     * Compara esta instancia con otro vehículo por código de inventario normalizado.
+     * Los códigos nulos se consideran posteriores a los códigos presentes.
+     *
+     * @param otro vehículo con el que comparar
+     * @return negativo, cero o positivo según el código de inventario
+     */
+    @Override
+    public int compareTo(Vehiculo otro) {
+        if (otro == null) {
+            throw new NullPointerException("No se puede comparar con un vehículo nulo");
+        }
+
+        return compararTextosNulosAlFinal(
+                normalizarCodigo(codigoInventario), normalizarCodigo(otro.codigoInventario));
+    }
+
+    private static int compararTextosNulosAlFinal(String uno, String otro) {
+        if (uno == null && otro == null) {
+            return 0;
+        }
+        if (uno == null) {
+            return 1;
+        }
+        if (otro == null) {
+            return -1;
+        }
+        return uno.compareTo(otro);
+    }
+
+    private static String normalizarCodigo(String codigo) {
+        return codigo != null ? codigo.trim().toUpperCase(Locale.ROOT) : null;
+    }
+
+    /**
      * Compara esta instancia de Vehiculo con otra objeto basándose en el código de inventario.
      * La comparación normaliza el código de inventario (trim().toUpperCase()) para ignorar
      * diferencias de mayúsculas/minúsculas y espacios.
@@ -298,12 +333,12 @@ public abstract class Vehiculo implements Identificable, EvaluatableComercial, S
         if (this == o) {
             return true;
         }
-        if (o == null || getClass() != o.getClass()) {
+        if (!(o instanceof Vehiculo)) {
             return false;
         }
         Vehiculo vehiculo = (Vehiculo) o;
-        String thisCodigo = codigoInventario != null ? codigoInventario.trim().toUpperCase() : null;
-        String otherCodigo = vehiculo.codigoInventario != null ? vehiculo.codigoInventario.trim().toUpperCase() : null;
+        String thisCodigo = normalizarCodigo(codigoInventario);
+        String otherCodigo = normalizarCodigo(vehiculo.codigoInventario);
         return Objects.equals(thisCodigo, otherCodigo);
     }
 
@@ -315,8 +350,7 @@ public abstract class Vehiculo implements Identificable, EvaluatableComercial, S
      */
     @Override
     public int hashCode() {
-        String normalizedCodigo = codigoInventario != null ? codigoInventario.trim().toUpperCase() : null;
-        return Objects.hash(normalizedCodigo);
+        return Objects.hash(normalizarCodigo(codigoInventario));
     }
 
     /**
