@@ -99,4 +99,16 @@ public class Motocicleta extends Vehiculo {
         ficha.append(" | Tipo: ").append(tipoMotocicleta != null ? tipoMotocicleta : "[sin especificar]");
         return ficha.toString();
     }
+
+    /**
+     * Devuelve una representación legible de la motocicleta para debugging.
+     * Encadena la representación de la superclase y agrega el tipo de motocicleta.
+     *
+     * @return String con formato de super.toString() concatenado con tipoMotocicleta
+     */
+    @Override
+    public String toString() {
+        String tipoVal = tipoMotocicleta != null ? tipoMotocicleta : "[sin tipo]";
+        return super.toString() + ", tipo=" + tipoVal + "]";
+    }
 }

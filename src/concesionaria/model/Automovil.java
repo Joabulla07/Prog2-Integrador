@@ -99,4 +99,16 @@ public class Automovil extends Vehiculo {
         ficha.append(" | Carrocería: ").append(carroceria != null ? carroceria : "[sin especificar]");
         return ficha.toString();
     }
+
+    /**
+     * Devuelve una representación legible del automóvil para debugging.
+     * Encadena la representación de la superclase y agrega el tipo de carrocería.
+     *
+     * @return String con formato de super.toString() concatenado con carrocería
+     */
+    @Override
+    public String toString() {
+        String carroceriaVal = carroceria != null ? carroceria : "[sin carrocería]";
+        return super.toString() + ", carrocería=" + carroceriaVal + "]";
+    }
 }

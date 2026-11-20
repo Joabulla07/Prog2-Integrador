@@ -6,6 +6,7 @@ import concesionaria.model.enums.EstadoUnidad;
 import concesionaria.model.enums.TipoVehiculo;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 /**
  * Clase abstracta base que representa un vehículo en el sistema de concesionaria.
@@ -282,5 +283,55 @@ public abstract class Vehiculo implements Identificable, EvaluatableComercial, S
         }
 
         return false;
+    }
+
+    /**
+     * Compara esta instancia de Vehiculo con otra objeto basándose en el código de inventario.
+     * La comparación normaliza el código de inventario (trim().toUpperCase()) para ignorar
+     * diferencias de mayúsculas/minúsculas y espacios.
+     *
+     * @param o objeto a comparar
+     * @return true si el objeto es un Vehiculo con el mismo codigoInventario (normalizado), false en caso contrario
+     */
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        Vehiculo vehiculo = (Vehiculo) o;
+        String thisCodigo = codigoInventario != null ? codigoInventario.trim().toUpperCase() : null;
+        String otherCodigo = vehiculo.codigoInventario != null ? vehiculo.codigoInventario.trim().toUpperCase() : null;
+        return Objects.equals(thisCodigo, otherCodigo);
+    }
+
+    /**
+     * Calcula el código hash basándose en el código de inventario normalizado.
+     * Es consistente con equals: dos objetos iguales tienen el mismo hashCode.
+     *
+     * @return código hash basado en codigoInventario
+     */
+    @Override
+    public int hashCode() {
+        String normalizedCodigo = codigoInventario != null ? codigoInventario.trim().toUpperCase() : null;
+        return Objects.hash(normalizedCodigo);
+    }
+
+    /**
+     * Devuelve una representación legible del vehículo para debugging.
+     * Incluye tipo de vehículo, marca, modelo, año y código de inventario.
+     *
+     * @return String con formato "Vehiculo[tipo=..., marca=..., modelo=..., anio=..., codigo=...]"
+     */
+    @Override
+    public String toString() {
+        String tipo = obtenerTipoVehiculo() != null ? obtenerTipoVehiculo().getDescripcion() : "[sin tipo]";
+        String marcaVal = marca != null ? marca : "[sin marca]";
+        String modeloVal = modelo != null ? modelo : "[sin modelo]";
+        String anioVal = anio != null ? anio.toString() : "[sin año]";
+        String codigoVal = codigoInventario != null ? codigoInventario : "[sin código]";
+        return "Vehiculo[tipo=" + tipo + ", marca=" + marcaVal + ", modelo=" + modeloVal + ", anio=" + anioVal + ", codigo=" + codigoVal + "]";
     }
 }
