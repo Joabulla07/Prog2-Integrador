@@ -27,7 +27,7 @@ public class Motocicleta extends Vehiculo {
     /**
      * Constructor parametrizado completo que inicializa todos los atributos de la motocicleta.
      *
-     * @param codigoInventario código único de inventario (ej. "MOTO-001")
+     * El código de inventario se asigna después de persistir el vehículo.
      * @param marca marca del vehículo (ej. "Honda")
      * @param modelo modelo del vehículo (ej. "CBR 600")
      * @param anio año del vehículo (ej. 2026)
@@ -37,10 +37,10 @@ public class Motocicleta extends Vehiculo {
      * @param precioLista precio de lista del vehículo
      * @param tipoMotocicleta tipo de motocicleta (ej. "Naked", "Enduro", "Scooter", "Custom")
      */
-    public Motocicleta(String codigoInventario, String marca, String modelo, Integer anio,
+    public Motocicleta(String marca, String modelo, Integer anio,
                         String color, EstadoUnidad estado, Integer kilometraje, Double precioLista,
                         String tipoMotocicleta) {
-        super(codigoInventario, marca, modelo, anio, color, estado, kilometraje, precioLista);
+        super(marca, modelo, anio, color, estado, kilometraje, precioLista);
         this.tipoMotocicleta = tipoMotocicleta;
     }
 

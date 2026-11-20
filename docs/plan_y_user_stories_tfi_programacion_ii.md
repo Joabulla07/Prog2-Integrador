@@ -151,9 +151,9 @@
       * `public abstract TipoVehiculo obtenerTipoVehiculo();`
       * `public abstract String obtenerTipoEstructura();`
       * `public abstract String obtenerFichaDirectiva();`
-  * `Automovil extends Vehiculo`: `private String carroceria;`, `obtenerTipoVehiculo()` devuelve `TipoVehiculo.AUTOMOVIL`, constructor vacío + completo, getter/setter, implementación polimórfica.
-  * `Camioneta extends Vehiculo`: `private String carroceria;`, `obtenerTipoVehiculo()` devuelve `TipoVehiculo.CAMIONETA`, constructor vacío + completo, getter/setter, implementación polimórfica.
-  * `Motocicleta extends Vehiculo`: `private String tipoMotocicleta;`, `obtenerTipoVehiculo()` devuelve `TipoVehiculo.MOTOCICLETA`, constructor vacío + completo, getter/setter, implementación polimórfica.
+  * `Automovil extends Vehiculo`: `private String carroceria;`, `obtenerTipoVehiculo()` devuelve `TipoVehiculo.AUTOMOVIL`, constructor vacío + constructor sin código de inventario, getter/setter, implementación polimórfica.
+  * `Camioneta extends Vehiculo`: `private String carroceria;`, `obtenerTipoVehiculo()` devuelve `TipoVehiculo.CAMIONETA`, constructor vacío + constructor sin código de inventario, getter/setter, implementación polimórfica.
+  * `Motocicleta extends Vehiculo`: `private String tipoMotocicleta;`, `obtenerTipoVehiculo()` devuelve `TipoVehiculo.MOTOCICLETA`, constructor vacío + constructor sin código de inventario, getter/setter, implementación polimórfica.
 * **Criterios de aceptación**:
   * No se puede instanciar `Vehiculo` directamente; las subclases son JavaBeans válidos y responden polimórficamente a `obtenerTipoVehiculo()`, `obtenerTipoEstructura()` y `obtenerFichaDirectiva()`.
 

@@ -27,7 +27,7 @@ public class Camioneta extends Vehiculo {
     /**
      * Constructor parametrizado completo que inicializa todos los atributos de la camioneta.
      *
-     * @param codigoInventario código único de inventario (ej. "CAM-001")
+     * El código de inventario se asigna después de persistir el vehículo.
      * @param marca marca del vehículo (ej. "Toyota")
      * @param modelo modelo del vehículo (ej. "Hilux")
      * @param anio año del vehículo (ej. 2026)
@@ -37,10 +37,10 @@ public class Camioneta extends Vehiculo {
      * @param precioLista precio de lista del vehículo
      * @param carroceria tipo de carrocería (ej. "Pick-up Doble Cabina", "SUV", "Furgón")
      */
-    public Camioneta(String codigoInventario, String marca, String modelo, Integer anio,
+    public Camioneta(String marca, String modelo, Integer anio,
                       String color, EstadoUnidad estado, Integer kilometraje, Double precioLista,
                       String carroceria) {
-        super(codigoInventario, marca, modelo, anio, color, estado, kilometraje, precioLista);
+        super(marca, modelo, anio, color, estado, kilometraje, precioLista);
         this.carroceria = carroceria;
     }
 

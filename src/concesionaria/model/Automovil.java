@@ -26,8 +26,7 @@ public class Automovil extends Vehiculo {
 
     /**
      * Constructor parametrizado completo que inicializa todos los atributos del automóvil.
-     *
-     * @param codigoInventario código único de inventario (ej. "AUTO-001")
+     * El código de inventario se asigna después de persistir el vehículo.
      * @param marca marca del vehículo (ej. "Toyota")
      * @param modelo modelo del vehículo (ej. "Corolla")
      * @param anio año del vehículo (ej. 2026)
@@ -37,10 +36,10 @@ public class Automovil extends Vehiculo {
      * @param precioLista precio de lista del vehículo
      * @param carroceria tipo de carrocería (ej. "Sedán", "Hatchback", "Coupé")
      */
-    public Automovil(String codigoInventario, String marca, String modelo, Integer anio,
+    public Automovil(String marca, String modelo, Integer anio,
                       String color, EstadoUnidad estado, Integer kilometraje, Double precioLista,
                       String carroceria) {
-        super(codigoInventario, marca, modelo, anio, color, estado, kilometraje, precioLista);
+        super(marca, modelo, anio, color, estado, kilometraje, precioLista);
         this.carroceria = carroceria;
     }
 

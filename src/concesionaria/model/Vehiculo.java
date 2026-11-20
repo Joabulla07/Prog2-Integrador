@@ -41,9 +41,9 @@ public abstract class Vehiculo implements Identificable, EvaluatableComercial, S
     }
 
     /**
-     * Constructor parametrizado completo que inicializa todos los atributos del vehículo.
+     * Constructor parametrizado para datos de creación; el código de inventario se asigna
+     * una sola vez después de persistir el vehículo.
      *
-     * @param codigoInventario código único de inventario (ej. "AUTO-001")
      * @param marca marca del vehículo (ej. "Toyota")
      * @param modelo modelo del vehículo (ej. "Corolla")
      * @param anio año del vehículo (ej. 2026)
@@ -52,9 +52,8 @@ public abstract class Vehiculo implements Identificable, EvaluatableComercial, S
      * @param kilometraje kilometraje recorrido (null o 0 para 0 km, valor positivo para usados)
      * @param precioLista precio de lista del vehículo
      */
-    public Vehiculo(String codigoInventario, String marca, String modelo, Integer anio,
+    public Vehiculo(String marca, String modelo, Integer anio,
                     String color, EstadoUnidad estado, Integer kilometraje, Double precioLista) {
-        this.codigoInventario = codigoInventario;
         this.marca = marca;
         this.modelo = modelo;
         this.anio = anio;
@@ -75,12 +74,20 @@ public abstract class Vehiculo implements Identificable, EvaluatableComercial, S
     }
 
     /**
-     * Establece el código de inventario del vehículo.
+     * Asigna una única vez el código generado por la persistencia.
      *
-     * @param codigoInventario código de inventario a establecer
+     * @param codigoInventario código generado para el vehículo
+     * @throws IllegalStateException si el código ya fue asignado
+     * @throws IllegalArgumentException si el código está vacío
      */
-    public void setCodigoInventario(String codigoInventario) {
-        this.codigoInventario = codigoInventario;
+    public void asignarCodigoInventario(String codigoInventario) {
+        if (this.codigoInventario != null) {
+            throw new IllegalStateException("El código de inventario ya fue asignado");
+        }
+        if (codigoInventario == null || codigoInventario.trim().isEmpty()) {
+            throw new IllegalArgumentException("El código de inventario no puede estar vacío");
+        }
+        this.codigoInventario = codigoInventario.trim();
     }
 
     /**
@@ -298,22 +305,10 @@ public abstract class Vehiculo implements Identificable, EvaluatableComercial, S
         if (otro == null) {
             throw new NullPointerException("No se puede comparar con un vehículo nulo");
         }
-
-        return compararTextosNulosAlFinal(
-                normalizarCodigo(codigoInventario), normalizarCodigo(otro.codigoInventario));
-    }
-
-    private static int compararTextosNulosAlFinal(String uno, String otro) {
-        if (uno == null && otro == null) {
-            return 0;
+        if (codigoInventario == null || otro.codigoInventario == null) {
+            throw new IllegalStateException("Solo vehículos persistidos pueden compararse por código");
         }
-        if (uno == null) {
-            return 1;
-        }
-        if (otro == null) {
-            return -1;
-        }
-        return uno.compareTo(otro);
+        return normalizarCodigo(codigoInventario).compareTo(normalizarCodigo(otro.codigoInventario));
     }
 
     private static String normalizarCodigo(String codigo) {
@@ -337,6 +332,9 @@ public abstract class Vehiculo implements Identificable, EvaluatableComercial, S
             return false;
         }
         Vehiculo vehiculo = (Vehiculo) o;
+        if (codigoInventario == null || vehiculo.codigoInventario == null) {
+            return false;
+        }
         String thisCodigo = normalizarCodigo(codigoInventario);
         String otherCodigo = normalizarCodigo(vehiculo.codigoInventario);
         return Objects.equals(thisCodigo, otherCodigo);

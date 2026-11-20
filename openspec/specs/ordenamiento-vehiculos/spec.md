@@ -18,8 +18,8 @@ El sistema SHALL permitir ordenar `Vehiculo` mediante `java.lang.Comparable<Vehi
 - **THEN** el resultado de la comparación es cero
 
 #### Scenario: Código nulo
-- **WHEN** uno de los vehículos tiene código nulo
-- **THEN** el vehículo sin código se ubica después y no se lanza una excepción
+- **WHEN** se intenta comparar un vehículo que todavía no recibió código de inventario
+- **THEN** la comparación falla con una excepción controlada porque el vehículo no está persistido
 
 ### Requirement: Consistencia entre comparación e igualdad
 El sistema SHALL mantener coherencia entre el orden natural y la igualdad basada en código de inventario.

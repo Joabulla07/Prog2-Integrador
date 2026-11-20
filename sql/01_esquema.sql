@@ -26,7 +26,15 @@ END
 GO
 
 CREATE TABLE dbo.Vehiculos (
-    codigo_inventario   VARCHAR(20)     NOT NULL,
+    id_vehiculo         INT              IDENTITY(1,1) NOT NULL,
+    codigo_inventario   AS (
+                            CASE tipo_vehiculo
+                                WHEN 'AUTOMOVIL' THEN 'AUTO-' 
+                                WHEN 'CAMIONETA' THEN 'CAM-' 
+                                WHEN 'MOTOCICLETA' THEN 'MOTO-' 
+                            END
+                            + RIGHT('000000' + CAST(id_vehiculo AS VARCHAR(10)), 6)
+                        ) PERSISTED,
     tipo_vehiculo       VARCHAR(20)     NOT NULL,
     marca               VARCHAR(60)     NOT NULL,
     modelo              VARCHAR(60)     NOT NULL,
@@ -38,7 +46,8 @@ CREATE TABLE dbo.Vehiculos (
     carroceria          VARCHAR(60)     NULL,
     tipo_motocicleta    VARCHAR(60)     NULL,
 
-    CONSTRAINT PK_Vehiculos PRIMARY KEY (codigo_inventario),
+    CONSTRAINT PK_Vehiculos PRIMARY KEY (id_vehiculo),
+    CONSTRAINT UQ_Vehiculos_Codigo UNIQUE (codigo_inventario),
 
     CONSTRAINT CK_Vehiculos_Tipo CHECK (
         tipo_vehiculo IN ('AUTOMOVIL', 'CAMIONETA', 'MOTOCICLETA')

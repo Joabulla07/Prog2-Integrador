@@ -13,9 +13,9 @@ El sistema SHALL proporcionar una clase abstracta Vehiculo que implemente interf
 - **WHEN** se invoca el constructor público sin argumentos de Vehiculo
 - **THEN** se crea una instancia con todos los atributos en null (no se puede instanciar directamente por ser abstracta, pero las subclases heredan este constructor)
 
-#### Scenario: Constructor parametrizado completo
-- **WHEN** se invoca el constructor parametrizado de Vehiculo con todos los campos
-- **THEN** se inicializa codigoInventario, marca, modelo, anio, color, estado, kilometraje y precioLista con los valores proporcionados
+#### Scenario: Constructor parametrizado sin código de inventario
+- **WHEN** se invoca el constructor parametrizado de Vehiculo con los datos de creación
+- **THEN** se inicializan marca, modelo, anio, color, estado, kilometraje y precioLista; codigoInventario queda pendiente hasta ser generado por persistencia
 
 #### Scenario: Atributos con Wrappers
 - **WHEN** se inspeccionan los atributos de Vehiculo
@@ -23,7 +23,7 @@ El sistema SHALL proporcionar una clase abstracta Vehiculo que implemente interf
 
 #### Scenario: Getters y setters públicos
 - **WHEN** se invocan getters y setters en Vehiculo
-- **THEN** todos los atributos privados son accesibles mediante métodos públicos getXxx() y setXxx()
+- **THEN** los atributos editables son accesibles mediante métodos públicos getXxx() y setXxx(); codigoInventario solo puede asignarse una vez mediante el método de persistencia asignarCodigoInventario()
 
 ### Requirement: Métodos polimórficos abstractos en Vehiculo
 El sistema SHALL declarar métodos abstractos en Vehiculo que cada subclase debe implementar para proporcionar comportamiento específico de tipo de vehículo.

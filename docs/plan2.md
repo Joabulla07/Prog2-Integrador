@@ -61,14 +61,14 @@
 
 * **Contexto del TP**: Gestión multimarca (Automóviles, Camionetas, Motocicletas), 0 km vs. usados (con kilometraje), y atributos de directivos (Marca, Modelo, Año, Color, Carrocería o tipo de Motocicleta).
 * **Objetivo**: Levantar MSSQL en Docker y crear el esquema relacional para persistir los vehículos multimarca.
-* **Estado**: COMPLETADA
+* **Estado**: COMPLETADA (ajuste pendiente para autogeneración)
 * **Implementación actual**:
   * **Docker**: usa `mcr.microsoft.com/mssql/server:2022-latest`, puerto `1433`, `ACCEPT_EULA=Y`, `MSSQL_SA_PASSWORD` desde `.env`.
   * **Base de datos**: `ConcesionariaTFI`.
-  * **Tabla `Vehiculos`**: implementada con todas las columnas y constraints especificadas.
-  * **Datos semilla**: 12 registros en `sql/02_datos.sql` (4 autos, 4 camionetas, 4 motos).
+  * **Tabla `Vehiculos`**: implementada con todas las columnas y constraints especificadas. Debe incorporar un identificador interno `id_vehiculo INT IDENTITY(1,1)` y generar `codigo_inventario` en MSSQL a partir del tipo y el identificador interno.
+  * **Datos semilla**: 12 registros en `sql/02_datos.sql` (4 autos, 4 camionetas, 4 motos); al activar la generación automática, los inserts deben excluir `codigo_inventario`.
   * **Scripts**: `run.sh` y `run.ps1` solo levantan contenedor y esperan inicialización (sin compilar Java).
-* **Criterios de aceptación**: CUMPLIDOS
+* **Criterios de aceptación**: CUMPLIDOS para el esquema inicial; pendiente ajustar el alta para generar `codigo_inventario` desde MSSQL y asignarlo al modelo.
 
 ### US-02 — Configuración de Entorno (`java-dotenv`) y Conexión `Sql2o` ✅
 
@@ -134,7 +134,7 @@
 * **Contexto del TP**: Implementación de Interfaces y transmisión del comportamiento.
 * **Objetivo**: Definir contratos de comportamiento transversal.
 * **Especificaciones técnicas**:
-  * `Identificable`: `String getCodigoInventario();`.
+  * `Identificable`: `String getCodigoInventario();`. El código puede ser `null` únicamente antes de persistir; después del alta queda asignado una vez por la capa de datos.
   * `EvaluatableComercial`: `String obtenerCategoriaComercial();` y `boolean esAptoEntregaInmediata();`.
   * JavaDoc explicando contratos y precondiciones.
 * **Criterios de aceptación**:
@@ -146,15 +146,15 @@
 * **Objetivo**: Implementar la jerarquía de clases del dominio.
 * **Especificaciones técnicas**:
   * `Vehiculo` (abstracta, implementa `Identificable`, `EvaluatableComercial`, `Serializable`):
-    * Atributos `private` con Wrappers: `codigoInventario` (`String`), `marca` (`String`), `modelo` (`String`), `anio` (`Integer`), `color` (`String`), `estado` (`EstadoUnidad`), `kilometraje` (`Integer`), `precioLista` (`Double`).
-    * Constructor público vacío `public Vehiculo()`, constructor parametrizado, getters y setters públicos.
+    * Atributos `private` con Wrappers: `codigoInventario` (`String`) asignado por persistencia, `marca` (`String`), `modelo` (`String`), `anio` (`Integer`), `color` (`String`), `estado` (`EstadoUnidad`), `kilometraje` (`Integer`), `precioLista` (`Double`).
+    * Constructor público vacío `public Vehiculo()`, constructor parametrizado sin código de inventario y getters/setters públicos para datos editables; `codigoInventario` se asigna una única vez mediante persistencia.
     * Métodos polimórficos:
       * `public abstract TipoVehiculo obtenerTipoVehiculo();`
       * `public abstract String obtenerTipoEstructura();`
       * `public abstract String obtenerFichaDirectiva();`
-  * `Automovil extends Vehiculo`: `private String carroceria;`, `obtenerTipoVehiculo()` devuelve `TipoVehiculo.AUTOMOVIL`, constructor vacío + completo, getter/setter, implementación polimórfica.
-  * `Camioneta extends Vehiculo`: `private String carroceria;`, `obtenerTipoVehiculo()` devuelve `TipoVehiculo.CAMIONETA`, constructor vacío + completo, getter/setter, implementación polimórfica.
-  * `Motocicleta extends Vehiculo`: `private String tipoMotocicleta;`, `obtenerTipoVehiculo()` devuelve `TipoVehiculo.MOTOCICLETA`, constructor vacío + completo, getter/setter, implementación polimórfica.
+  * `Automovil extends Vehiculo`: `private String carroceria;`, `obtenerTipoVehiculo()` devuelve `TipoVehiculo.AUTOMOVIL`, constructor vacío + constructor sin código de inventario, getter/setter, implementación polimórfica.
+  * `Camioneta extends Vehiculo`: `private String carroceria;`, `obtenerTipoVehiculo()` devuelve `TipoVehiculo.CAMIONETA`, constructor vacío + constructor sin código de inventario, getter/setter, implementación polimórfica.
+  * `Motocicleta extends Vehiculo`: `private String tipoMotocicleta;`, `obtenerTipoVehiculo()` devuelve `TipoVehiculo.MOTOCICLETA`, constructor vacío + constructor sin código de inventario, getter/setter, implementación polimórfica.
 * **Criterios de aceptación**:
   * No se puede instanciar `Vehiculo` directamente; las subclases son JavaBeans válidos y responden polimórficamente a `obtenerTipoVehiculo()`, `obtenerTipoEstructura()` y `obtenerFichaDirectiva()`.
 
@@ -163,7 +163,7 @@
 * **Contexto del TP**: Sobreescritura de métodos esenciales.
 * **Objetivo**: Implementar `equals`, `hashCode` y `toString` en la jerarquía `Vehiculo`.
 * **Especificaciones técnicas**:
-  * `Vehiculo`: `equals(Object o)` por `codigoInventario` (normalizado), `hashCode()` con `Objects.hash(...)`, `toString()` con resumen legible incluyendo `obtenerTipoVehiculo()`.
+  * `Vehiculo`: `equals(Object o)` por `codigoInventario` normalizado, solo para vehículos persistidos; `hashCode()` con `Objects.hash(...)` y el código normalizado; `toString()` con resumen legible incluyendo `obtenerTipoVehiculo()`. Dos objetos no persistidos no son iguales solo por tener código nulo.
   * `Automovil`, `Camioneta`, `Motocicleta`: `toString()` encadenando `super.toString()` con `carroceria` o `tipoMotocicleta`.
 * **Criterios de aceptación**:
   * Dos instancias con el mismo código dan `equals == true` y mismo `hashCode`; `toString()` muestra el detalle de cada subtipo.
@@ -175,7 +175,7 @@
 * **Especificaciones técnicas**:
   * `Vehiculo` debe implementar `Comparable<Vehiculo>` y sobrescribir `compareTo(Vehiculo otro)`.
   * El orden natural debe comparar exclusivamente `codigoInventario` normalizado; precio, año y marca/modelo quedan en comparadores externos.
-  * Los valores nulos deben manejarse sin lanzar `NullPointerException`, ubicando los vehículos incompletos al final.
+  * Los vehículos sin `codigoInventario`, es decir, todavía no persistidos, no deben compararse ni ubicarse: `compareTo` debe rechazar esa comparación con una excepción controlada.
   * Implementar comparadores externos `Comparator<Vehiculo>` para al menos: año, marca y modelo, y precio.
   * Utilizar `Collections.sort(...)` o `List.sort(...)` sobre `List<Vehiculo>` para aplicar los comparadores.
   * Si se conserva la interfaz personalizada `Comparable.java`, reemplazarla por una implementación compatible con `java.lang.Comparable` o eliminarla para evitar ambigüedad con la interfaz estándar.
@@ -183,7 +183,7 @@
 * **Criterios de aceptación**:
   * `Vehiculo` puede ordenarse con `Collections.sort(vehiculos)` mediante su orden natural.
   * Las colecciones pueden ordenarse por año, marca/modelo y precio mediante `Comparator<Vehiculo>`.
-  * Vehículos con precio nulo no rompen el ordenamiento.
+  * Vehículos con código nulo no se comparan ni se insertan en colecciones ordenadas por el código natural.
   * Los métodos de ordenamiento tienen pruebas que verifican el criterio aplicado y el resultado esperado.
 
 ### US-10 — Repositorio Genérico, Persistencia MSSQL con `Sql2o` y Colecciones (`repository`)
@@ -194,9 +194,9 @@
   * **Interfaz genérica `RepositorioGenerico<T extends Identificable, ID>`**: define el contrato CRUD parametrizado (`guardar(T entidad)`, `buscarPorCodigo(ID codigo)`, `listarTodos()`, `eliminarPorCodigo(ID codigo)`), acotando el tipo `T` a entidades que implementen `Identificable` (US-06).
   * **Clase genérica `IndiceGenerico<K, V extends Identificable>`**: clase concreta parametrizada respaldada internamente por un `Map<K, V>` para indexar, consultar y sincronizar entidades en memoria por clave con tipado seguro.
   * **Interfaz `VehiculoRepository extends RepositorioGenerico<Vehiculo, String>`**: hereda las operaciones CRUD genéricas y declara únicamente los métodos específicos del dominio (`listarPorEstado`, `listarPorTipo`).
-  * **Clase `MssqlVehiculoRepository implements VehiculoRepository`**: usa `ConexionDB.sql2o` (variante de `DatabaseConfig.getSql2o()`), consultas parametrizadas con `Sql2o`, persiste `tipo_vehiculo` desde `vehiculo.obtenerTipoVehiculo().name()`, lee `tipo_vehiculo` mediante `TipoVehiculo.fromString(...)` junto con `carroceria` y `tipo_motocicleta` como `String` para instanciar `Automovil`, `Camioneta` o `Motocicleta`, devuelve `ArrayList<Vehiculo>` y traduce errores `Sql2oException` a `PersistenciaException`.
+  * **Clase `MssqlVehiculoRepository implements VehiculoRepository`**: usa `ConexionDB.sql2o` (variante de `DatabaseConfig.getSql2o()`), consultas parametrizadas con `Sql2o`, persiste `tipo_vehiculo` desde `vehiculo.obtenerTipoVehiculo().name()` y excluye `codigo_inventario` del `INSERT`, permitiendo que MSSQL genere el identificador interno y el código persistente. Después del `INSERT`, recupera `codigo_inventario` con `OUTPUT INSERTED.codigo_inventario` o `SCOPE_IDENTITY()` y una consulta posterior, y llama a `vehiculo.asignarCodigoInventario(...)` una única vez. Lee `tipo_vehiculo` mediante `TipoVehiculo.fromString(...)` junto con `carroceria` y `tipo_motocicleta` como `String` para instanciar `Automovil`, `Camioneta` o `Motocicleta`, devuelve `ArrayList<Vehiculo>` y traduce errores `Sql2oException` a `PersistenciaException`.
 * **Criterios de aceptación**:
-  * `RepositorioGenerico` e `IndiceGenerico` compilan con tipado seguro; altas, consultas, filtros por `TipoVehiculo` / `EstadoUnidad` y bajas persisten en `Vehiculos` de Docker MSSQL y se devuelven en `List<Vehiculo>`.
+  * `RepositorioGenerico` e `IndiceGenerico` compilan con tipado seguro; el alta no recibe ni genera el código en Java, MSSQL genera `codigo_inventario`, el repositorio lo asigna una única vez al objeto persistido y las consultas, filtros por `TipoVehiculo` / `EstadoUnidad` y bajas devuelven `List<Vehiculo>`.
 
 ### US-11 — Lógica de Negocio `ConcesionariaService` y Reportes Directivos (`service`)
 
@@ -204,11 +204,11 @@
 * **Objetivo**: Centralizar validaciones de dominio, reglas 0 km/usado y reportes para directivos.
 * **Especificaciones técnicas**:
   * `ConcesionariaService` con inyección de `VehiculoRepository` por constructor.
-  * `registrarVehiculo(Vehiculo v)`: valida campos obligatorios no vacíos (incluyendo `carroceria` en `Automovil`/`Camioneta` y `tipoMotocicleta` en `Motocicleta`), `TipoVehiculo` y `EstadoUnidad` no nulos, rango de año (`1950` a `Year.now().getValue() + 1`), `precioLista > 0`, coherencia `CERO_KM` (`kilometraje = 0`) vs. `USADO` (`kilometraje > 0`), y unicidad de código.
+  * `registrarVehiculo(Vehiculo v)`: valida campos obligatorios no vacíos (incluyendo `carroceria` en `Automovil`/`Camioneta` y `tipoMotocicleta` en `Motocicleta`), `TipoVehiculo` y `EstadoUnidad` no nulos, rango de año (`1950` a `Year.now().getValue() + 1`) y `precioLista > 0`, coherencia `CERO_KM` (`kilometraje = 0`) vs. `USADO` (`kilometraje > 0`). Rechaza registrar un objeto que ya tenga `codigoInventario`; delega la creación al repositorio y recibe el vehículo con el código generado por MSSQL asignado una sola vez.
   * `obtenerVehiculoPorCodigo` y `eliminarVehiculo`: lanzan `VehiculoNoEncontradoException` si no existe.
   * `generarReporteDirectivos()`: totales por `TipoVehiculo` (`AUTOMOVIL`, `CAMIONETA`, `MOTOCICLETA`) y por `EstadoUnidad` (`0 km` vs `Usados`), más fichas directivas (`obtenerFichaDirectiva()`).
 * **Criterios de aceptación**:
-  * Ninguna regla de validación queda en `ConsolaApp` ni en `Vehiculo`; reporte directivo completo.
+  * Ninguna regla de validación queda en `ConsolaApp` ni en `Vehiculo`; el usuario no ingresa el código de inventario y el reporte directivo completo incluye el código generado.
 
 ### US-12 — Controles de *Data-Entry* y Wrappers (`ui`)
 
@@ -229,9 +229,9 @@
 * **Objetivo**: Implementar el menú interactivo conectado a `ConcesionariaService`.
 * **Especificaciones técnicas**:
   * `ConsolaApp` con `main` y menú en bucle:
-    1. Registrar Automóvil
-    2. Registrar Camioneta
-    3. Registrar Motocicleta
+    1. Registrar Automóvil (sin solicitar código de inventario)
+    2. Registrar Camioneta (sin solicitar código de inventario)
+    3. Registrar Motocicleta (sin solicitar código de inventario)
     4. Listar todos los vehículos
     5. Listar unidades 0 km
     6. Listar unidades usadas
