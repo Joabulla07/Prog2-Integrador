@@ -1,0 +1,1 @@
+packageSearchIndex = [{"l":"All Packages","u":"allpackages-index.html","k":"18"},{"l":"concesionaria"},{"l":"concesionaria.config"},{"l":"concesionaria.exception"},{"l":"concesionaria.interfaces"},{"l":"concesionaria.model"},{"l":"concesionaria.model.enums"},{"l":"concesionaria.repository"},{"l":"concesionaria.servicio"},{"l":"concesionaria.ui"}];updateSearchResults();

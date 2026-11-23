@@ -9,7 +9,7 @@ public interface EvaluatableComercial {
     /**
      * Obtiene la categoría comercial del vehículo.
      * La categoría combina el tipo de vehículo con un rango de precio:
-     * - Económico: precio < 15.000.000
+     * - Económico: precio &lt; 15.000.000
      * - Medio: precio entre 15.000.000 y 40.000.000
      * - Premium: precio > 40.000.000
      *
@@ -20,7 +20,7 @@ public interface EvaluatableComercial {
     /**
      * Determina si el vehículo es apto para entrega inmediata.
      * - Vehículos 0 km: siempre aptos
-     * - Vehículos usados: aptos si kilometraje < 50.000 km Y antigüedad <= 5 años
+     * - Vehículos usados: aptos si kilometraje &lt; 50.000 km Y antigüedad &lt;= 5 años
      *
      * @return true si es apto para entrega inmediata, false en caso contrario
      */

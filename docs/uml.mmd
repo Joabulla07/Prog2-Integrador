@@ -1,0 +1,134 @@
+classDiagram
+    direction LR
+
+    class Main {
+        +main(args)
+    }
+
+    class ConsolaApp {
+        -ConcesionariaService servicio
+        -ValidadorEntrada entrada
+        +iniciar()
+        -registrarAutomovil()
+        -registrarCamioneta()
+        -registrarMotocicleta()
+        -listar(List~Vehiculo~, String)
+        -buscarPorCodigo()
+        -eliminarPorCodigo()
+    }
+
+    class LauncherConsola {
+        +main(args)
+    }
+
+    class ValidadorEntrada {
+        -Scanner scanner
+        +leerTextoObligatorio(String) String
+        +leerEnteroWrapper(String, int, int) Integer
+        +leerDecimalWrapper(String, double) Double
+        +leerEnum(String, Class~E~) E
+    }
+
+    class ConcesionariaService {
+        -VehiculoRepository repositorio
+        +registrarVehiculo(Vehiculo) Vehiculo
+        +listarTodos() List~Vehiculo~
+        +listarPorEstado(EstadoUnidad) List~Vehiculo~
+        +listarPorTipo(TipoVehiculo) List~Vehiculo~
+        +obtenerVehiculoPorCodigo(String) Vehiculo
+        +eliminarVehiculo(String) boolean
+        +generarReporteDirectivos() String
+    }
+
+    class RepositorioGenerico~T,ID~ {
+        <<interface>>
+        +guardar(T) T
+        +buscarPorCodigo(ID) T
+        +listarTodos() List~T~
+        +eliminarPorCodigo(ID) boolean
+    }
+
+    class VehiculoRepository {
+        <<interface>>
+        +listarPorEstado(EstadoUnidad) List~Vehiculo~
+        +listarPorTipo(TipoVehiculo) List~Vehiculo~
+    }
+
+    class MssqlVehiculoRepository {
+        -Sql2o sql2o
+        +guardar(Vehiculo) Vehiculo
+        +buscarPorCodigo(String) Vehiculo
+        +listarTodos() List~Vehiculo~
+        +eliminarPorCodigo(String) boolean
+    }
+
+    class Vehiculo {
+        <<abstract>>
+        -String codigoInventario
+        -String marca
+        -String modelo
+        -Integer anio
+        -String color
+        -EstadoUnidad estado
+        -Integer kilometraje
+        -Double precioLista
+        +obtenerTipoVehiculo()* TipoVehiculo
+        +obtenerTipoEstructura()* String
+        +obtenerFichaDirectiva()* String
+        +obtenerCategoriaComercial() String
+        +esAptoEntregaInmediata() boolean
+        +compareTo(Vehiculo) int
+    }
+
+    class Automovil {
+        -String carroceria
+    }
+
+    class Camioneta {
+        -String carroceria
+    }
+
+    class Motocicleta {
+        -String tipoMotocicleta
+    }
+
+    class TipoVehiculo {
+        <<enum>>
+        AUTOMOVIL
+        CAMIONETA
+        MOTOCICLETA
+        +fromString(String) TipoVehiculo
+    }
+
+    class EstadoUnidad {
+        <<enum>>
+        CERO_KM
+        USADO
+        +fromString(String) EstadoUnidad
+    }
+
+    class Identificable {
+        <<interface>>
+        +getCodigoInventario() String
+    }
+
+    class EvaluatableComercial {
+        <<interface>>
+        +obtenerCategoriaComercial() String
+        +esAptoEntregaInmediata() boolean
+    }
+
+    Main --> ConsolaApp
+    LauncherConsola --> Main
+    ConsolaApp --> ConcesionariaService
+    ConsolaApp --> ValidadorEntrada
+    ConcesionariaService --> VehiculoRepository
+    VehiculoRepository --|> RepositorioGenerico
+    MssqlVehiculoRepository ..|> VehiculoRepository
+    Vehiculo ..|> Identificable
+    Vehiculo ..|> EvaluatableComercial
+    Vehiculo --> TipoVehiculo
+    Vehiculo --> EstadoUnidad
+    Vehiculo <|-- Automovil
+    Vehiculo <|-- Camioneta
+    Vehiculo <|-- Motocicleta

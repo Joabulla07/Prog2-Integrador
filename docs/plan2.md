@@ -265,6 +265,7 @@
 * **Especificaciones técnicas**:
   * Ejecutar `javadoc -d docs -sourcepath src -subpackages concesionaria`.
   * Probar persistencia real reiniciando la consola separada y verificando datos en MSSQL.
-  * Completar datos del alumno (Alumno, Legajo, Email) en el documento del TFI.
+  * Crear un README.ms completo con toda la explicacion del programa, funcionalidades y como correrlo.
+  * Crear un diagrama UML.
 * **Criterios de aceptación**:
-  * Carpeta `docs/` generada con JavaDoc, persistencia verificada y entrega lista.
+  * Carpeta `docs/` generada con JavaDoc y persistencia verificada.
