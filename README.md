@@ -136,6 +136,3 @@ El diagrama de clases principal está disponible en Mermaid:
 
 - [Abrir diagrama fuente](docs/uml.mmd)
 
-```md
-![Diagrama UML](docs/uml.svg)
-```
