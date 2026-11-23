@@ -96,6 +96,7 @@ public class Camioneta extends Vehiculo {
         ficha.append(getAnio() != null ? getAnio() : "[sin año]");
         ficha.append(" | Estado: ").append(getEstado() != null ? getEstado().getDescripcion() : "[sin estado]");
         ficha.append(" | Precio: $").append(getPrecioLista() != null ? getPrecioLista() : "[sin precio]");
+        ficha.append(" | Código: ").append(getCodigoInventario() != null ? getCodigoInventario() : "[sin código]");
         ficha.append(" | Carrocería: ").append(carroceria != null ? carroceria : "[sin especificar]");
         return ficha.toString();
     }

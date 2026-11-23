@@ -6,13 +6,13 @@ public class TestExcepciones {
             System.out.println("=== Test US-05: Excepciones Propias ===");
 
             // 1. DatoVehiculoInvalidoException
-            DatoVehiculoInvalidoException ex1 = new DatoVehiculoInvalidoException("Campo requerido vacío");
+            DatoVehiculoInvalidoException ex1 = new DatoVehiculoInvalidoException("Campo requerido vacío", "marca", "");
             if (!"Campo requerido vacío".equals(ex1.getMessage())) {
                 throw new AssertionError("Mensaje incorrecto en DatoVehiculoInvalidoException");
             }
 
             // 2. VehiculoNoEncontradoException
-            VehiculoNoEncontradoException ex2 = new VehiculoNoEncontradoException("AUTO-0001");
+            VehiculoNoEncontradoException ex2 = new VehiculoNoEncontradoException("Vehículo no encontrado: AUTO-0001", "AUTO-0001");
             if (!ex2.getMessage().contains("AUTO-0001")) {
                 throw new AssertionError("Mensaje de VehiculoNoEncontradoException debe contener el código buscado");
             }

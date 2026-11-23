@@ -34,7 +34,7 @@ public class TestInterfacesModel {
             }
 
             // Verify Polimorfismo obtenerFichaDirectiva() & obtenerTipoEstructura()
-            if (!auto.obtenerTipoEstructura().equals("Carrocería: Sedán")) {
+            if (!auto.obtenerTipoEstructura().equals("Automóvil con carrocería Sedán")) {
                 throw new AssertionError("obtenerTipoEstructura() incorrecto para Automovil");
             }
             if (!moto.obtenerFichaDirectiva().contains("MOTOCICLETA")) {

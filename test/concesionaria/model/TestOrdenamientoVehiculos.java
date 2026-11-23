@@ -37,13 +37,13 @@ public class TestOrdenamientoVehiculos {
             }
 
             // Comparator por Año
-            lista.sort(ComparadoresVehiculo.POR_ANIO);
+            lista.sort(ComparadoresVehiculo.POR_ANIO_ASC);
             if (lista.get(0).getAnio() != 2020 || lista.get(2).getAnio() != 2026) {
                 throw new AssertionError("Fallo en el ordenamiento por Año");
             }
 
             // Comparator por Precio
-            lista.sort(ComparadoresVehiculo.POR_PRECIO);
+            lista.sort(ComparadoresVehiculo.POR_PRECIO_ASC);
             if (lista.get(0).getPrecioLista() != 18000000.0 || lista.get(2).getPrecioLista() != 25000000.0) {
                 throw new AssertionError("Fallo en el ordenamiento por Precio");
             }

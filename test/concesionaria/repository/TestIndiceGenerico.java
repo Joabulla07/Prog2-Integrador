@@ -21,24 +21,24 @@ public class TestIndiceGenerico {
             assignMethod.invoke(a1, "AUTO-0001");
             assignMethod.invoke(a2, "AUTO-0002");
 
-            indiceAuto.indexar(a1.getCodigoInventario(), a1);
-            indiceAuto.indexar(a2.getCodigoInventario(), a2);
+            indiceAuto.agregar(a1.getCodigoInventario(), a1);
+            indiceAuto.agregar(a2.getCodigoInventario(), a2);
 
-            if (indiceAuto.tamano() != 2) {
+            if (indiceAuto.tamaño() != 2) {
                 throw new AssertionError("Tamaño de IndiceGenerico incorrecto");
             }
 
-            if (!indiceAuto.contieneClave("AUTO-0001")) {
+            if (!indiceAuto.contiene("AUTO-0001")) {
                 throw new AssertionError("IndiceGenerico no contiene la clave 'AUTO-0001'");
             }
 
-            Automovil recuperado = indiceAuto.buscarPorClave("AUTO-0001");
+            Automovil recuperado = indiceAuto.buscar("AUTO-0001");
             if (recuperado == null || !"Toyota".equals(recuperado.getMarca())) {
                 throw new AssertionError("Búsqueda por clave devolvió objeto incorrecto");
             }
 
-            indiceAuto.desindexar("AUTO-0001");
-            if (indiceAuto.contieneClave("AUTO-0001") || indiceAuto.tamano() != 1) {
+            indiceAuto.eliminar("AUTO-0001");
+            if (indiceAuto.contiene("AUTO-0001") || indiceAuto.tamaño() != 1) {
                 throw new AssertionError("Desindexar no eliminó la entrada correctamente");
             }
 

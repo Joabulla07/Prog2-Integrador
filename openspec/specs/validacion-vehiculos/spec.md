@@ -7,7 +7,7 @@ Proporciona excepciones específicas del dominio para validar datos de vehículo
 ## Requirements
 
 ### Requirement: Validación de datos de vehículo
-El sistema SHALL lanzar DatoVehiculoInvalidoException cuando los datos de un vehículo no cumplan las reglas del dominio, incluyendo el campo y valor inválido en el contexto.
+ConcesionariaService SHALL validar los datos de un vehículo antes de delegar su persistencia al repositorio. La validación SHALL incluir campos obligatorios no vacíos, TipoVehiculo y EstadoUnidad no nulos, año entre 1950 y el año actual más uno, precioLista mayor a cero y coherencia entre estado y kilometraje. El sistema SHALL lanzar DatoVehiculoInvalidoException con el campo y valor inválido en el contexto. La consola y Vehiculo SHALL NO contener reglas de validación de dominio.
 
 #### Scenario: Año fuera de rango
 - **WHEN** se valida un vehículo con año menor a 1950 o mayor al año actual + 1
@@ -28,6 +28,10 @@ El sistema SHALL lanzar DatoVehiculoInvalidoException cuando los datos de un veh
 #### Scenario: Campo obligatorio vacío
 - **WHEN** se valida un vehículo con marca, modelo, color, carrocería o tipoMotocicleta vacío
 - **THEN** se lanza DatoVehiculoInvalidoException con el campo faltante
+
+#### Scenario: Validación fuera del modelo y la consola
+- **WHEN** se registra o modifica un vehículo
+- **THEN** la decisión de validez se ejecuta en ConcesionariaService y no en Vehiculo ni en la consola
 
 ### Requirement: Búsqueda de vehículo no encontrado
 El sistema SHALL lanzar VehiculoNoEncontradoException cuando no se encuentre un vehículo por su código de inventario, incluyendo el código buscado en el contexto.
