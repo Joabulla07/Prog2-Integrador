@@ -5,6 +5,9 @@
 -- Motor: Microsoft SQL Server
 -- =============================================================================
 
+SET QUOTED_IDENTIFIER ON;
+GO
+
 USE master;
 GO
 
