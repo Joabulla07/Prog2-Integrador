@@ -11,6 +11,7 @@ import concesionaria.model.enums.TipoVehiculo;
 import concesionaria.repository.VehiculoRepository;
 
 import java.time.Year;
+import java.util.List;
 
 /**
  * Coordina las operaciones de negocio de la concesionaria.
@@ -32,7 +33,7 @@ public class ConcesionariaService {
     }
 
     public String generarReporteDirectivos() {
-        java.util.List<Vehiculo> vehiculos = repositorio.listarTodos();
+        List<Vehiculo> vehiculos = repositorio.listarTodos();
         int automoviles = 0;
         int camionetas = 0;
         int motocicletas = 0;
@@ -62,6 +63,24 @@ public class ConcesionariaService {
             reporte.append("- ").append(vehiculo.obtenerFichaDirectiva()).append("\n");
         }
         return reporte.toString();
+    }
+
+    public List<Vehiculo> listarTodos() {
+        return repositorio.listarTodos();
+    }
+
+    public List<Vehiculo> listarPorEstado(EstadoUnidad estado) {
+        if (estado == null) {
+            throw new IllegalArgumentException("El estado no puede ser null");
+        }
+        return repositorio.listarPorEstado(estado);
+    }
+
+    public List<Vehiculo> listarPorTipo(TipoVehiculo tipo) {
+        if (tipo == null) {
+            throw new IllegalArgumentException("El tipo no puede ser null");
+        }
+        return repositorio.listarPorTipo(tipo);
     }
 
     public Vehiculo obtenerVehiculoPorCodigo(String codigo) throws VehiculoNoEncontradoException {
