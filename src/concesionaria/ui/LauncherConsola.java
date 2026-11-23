@@ -1,8 +1,6 @@
 package concesionaria.ui;
 
 import java.io.File;
-import java.nio.charset.Charset;
-import java.util.List;
 
 /**
  * Abre ConsolaApp en una consola separada.
@@ -26,9 +24,7 @@ public class LauncherConsola {
             launcher.inheritIO();
             launcher.start();
 
-            if (os.contains("win") || launcher != null) {
-                System.exit(0);
-            }
+            System.exit(0);
         } catch (Exception e) {
             System.err.println("No se pudo abrir una consola separada: " + e.getMessage());
             System.err.println("Ejecutando en la consola actual...");
@@ -44,7 +40,7 @@ public class LauncherConsola {
             if (comandoDisponible(comando)) {
                 if (comando.equals("gnome-terminal")) {
                     return new ProcessBuilder(comando, "--", "bash", "-lc",
-                            "cd \"$PWD\" && chcp 65001 >/dev/null 2>&1 || true; java -cp \"out:lib/*\" concesionaria.Main; exec bash");
+                            "cd \"$PWD\" && java -cp \"out:lib/*\" concesionaria.Main; exec bash");
                 }
                 if (comando.equals("konsole")) {
                     return new ProcessBuilder(comando, "-e", "bash", "-lc",
@@ -60,7 +56,11 @@ public class LauncherConsola {
     private static boolean comandoDisponible(String comando) {
         try {
             Process proceso = new ProcessBuilder("which", comando).redirectErrorStream(true).start();
-            return proceso.waitFor() == 0;
+            boolean disponible = proceso.waitFor() == 0;
+            if (!disponible) {
+                proceso.destroy();
+            }
+            return disponible;
         } catch (Exception e) {
             return false;
         }

@@ -4,8 +4,7 @@ import concesionaria.model.Automovil;
 import concesionaria.model.Vehiculo;
 import concesionaria.model.enums.EstadoUnidad;
 import concesionaria.model.enums.TipoVehiculo;
-import concesionaria.repository.MssqlVehiculoRepository;
-import concesionaria.repository.VehiculoRepository;
+import concesionaria.interfaces.VehiculoRepository;
 
 public class TestRepository {
     public static void main(String[] args) {

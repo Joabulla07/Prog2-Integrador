@@ -2,6 +2,7 @@ package concesionaria.repository;
 
 import concesionaria.config.ConexionDB;
 import concesionaria.exception.PersistenciaException;
+import concesionaria.interfaces.VehiculoRepository;
 import concesionaria.model.Automovil;
 import concesionaria.model.Camioneta;
 import concesionaria.model.Motocicleta;
@@ -16,7 +17,6 @@ import org.sql2o.Sql2oException;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.List;
 
 /**

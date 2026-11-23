@@ -34,7 +34,7 @@
 * `model`: clase abstracta `Vehiculo` (JavaBean/POJO) y subclases `Automovil`, `Camioneta`, `Motocicleta`.
 * `model.enums`: `EstadoUnidad` y `TipoVehiculo` (los únicos enums del dominio; carrocerías y tipos de moto se manejan como texto libre validado para no limitar el catálogo multimarca).
 * `interfaces`: `Identificable`, `EvaluatableComercial`.
-* `repository`: `RepositorioGenerico<T, ID>`, `IndiceGenerico<K, V>`, `VehiculoRepository` y `MssqlVehiculoRepository` (con `Sql2o` + colecciones `List<Vehiculo>`).
+* `repository`: `RepositorioGenerico<T, ID>`, `VehiculoRepository` y `MssqlVehiculoRepository` (con `Sql2o` + colecciones `List<Vehiculo>`).
 * `service`: `ConcesionariaService` (reglas de negocio, validaciones de 0 km/usado y reportes directivos).
 * `exception`: `DatoVehiculoInvalidoException`, `VehiculoNoEncontradoException`, `PersistenciaException`.
 * `ui`: `ConsolaApp`, `ValidadorEntrada`, `LauncherConsola` (y script `ejecutar.bat` en raíz).
@@ -192,11 +192,10 @@
 * **Objetivo**: Definir una arquitectura genérica reutilizable de repositorio e implementar la persistencia en MSSQL usando `Sql2o` junto con colecciones en memoria (`List<Vehiculo>` y `Map`).
 * **Especificaciones técnicas**:
   * **Interfaz genérica `RepositorioGenerico<T extends Identificable, ID>`**: define el contrato CRUD parametrizado (`guardar(T entidad)`, `buscarPorCodigo(ID codigo)`, `listarTodos()`, `eliminarPorCodigo(ID codigo)`), acotando el tipo `T` a entidades que implementen `Identificable` (US-06).
-  * **Clase genérica `IndiceGenerico<K, V extends Identificable>`**: clase concreta parametrizada respaldada internamente por un `Map<K, V>` para indexar, consultar y sincronizar entidades en memoria por clave con tipado seguro.
   * **Interfaz `VehiculoRepository extends RepositorioGenerico<Vehiculo, String>`**: hereda las operaciones CRUD genéricas y declara únicamente los métodos específicos del dominio (`listarPorEstado`, `listarPorTipo`).
   * **Clase `MssqlVehiculoRepository implements VehiculoRepository`**: usa `ConexionDB.sql2o` (variante de `DatabaseConfig.getSql2o()`), consultas parametrizadas con `Sql2o`, persiste `tipo_vehiculo` desde `vehiculo.obtenerTipoVehiculo().name()` y excluye `codigo_inventario` del `INSERT`, permitiendo que MSSQL genere el identificador interno y el código persistente. Después del `INSERT`, recupera `codigo_inventario` con `OUTPUT INSERTED.codigo_inventario` o `SCOPE_IDENTITY()` y una consulta posterior, y llama a `vehiculo.asignarCodigoInventario(...)` una única vez. Lee `tipo_vehiculo` mediante `TipoVehiculo.fromString(...)` junto con `carroceria` y `tipo_motocicleta` como `String` para instanciar `Automovil`, `Camioneta` o `Motocicleta`, devuelve `ArrayList<Vehiculo>` y traduce errores `Sql2oException` a `PersistenciaException`.
 * **Criterios de aceptación**:
-  * `RepositorioGenerico` e `IndiceGenerico` compilan con tipado seguro; el alta no recibe ni genera el código en Java, MSSQL genera `codigo_inventario`, el repositorio lo asigna una única vez al objeto persistido y las consultas, filtros por `TipoVehiculo` / `EstadoUnidad` y bajas devuelven `List<Vehiculo>`.
+  * `RepositorioGenerico` compila con tipado seguro; el alta no recibe ni genera el código en Java, MSSQL genera `codigo_inventario`, el repositorio lo asigna una única vez al objeto persistido y las consultas, filtros por `TipoVehiculo` / `EstadoUnidad` y bajas devuelven `List<Vehiculo>`.
 
 ### US-11 — Lógica de Negocio `ConcesionariaService` y Reportes Directivos (`service`)
 

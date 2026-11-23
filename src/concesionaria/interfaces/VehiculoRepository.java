@@ -1,4 +1,4 @@
-package concesionaria.repository;
+package concesionaria.interfaces;
 
 import concesionaria.model.Vehiculo;
 import concesionaria.model.enums.EstadoUnidad;

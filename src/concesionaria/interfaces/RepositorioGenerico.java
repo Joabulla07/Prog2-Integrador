@@ -1,6 +1,5 @@
-package concesionaria.repository;
-
-import concesionaria.interfaces.Identificable;
+package concesionaria.interfaces;
+import java.util.List;
 
 /**
  * Interfaz genérica que define el contrato CRUD básico para entidades identificables.
@@ -42,7 +41,7 @@ public interface RepositorioGenerico<T extends Identificable, ID> {
      *
      * @return una colección con todas las entidades
      */
-    java.util.List<T> listarTodos();
+    List<T> listarTodos();
 
     /**
      * Elimina una entidad del repositorio por su identificador.

@@ -3,10 +3,12 @@ package concesionaria.servicio;
 import concesionaria.exception.DatoVehiculoInvalidoException;
 import concesionaria.exception.VehiculoNoEncontradoException;
 import concesionaria.model.Automovil;
+import concesionaria.model.Camioneta;
+import concesionaria.model.Motocicleta;
 import concesionaria.model.Vehiculo;
 import concesionaria.model.enums.EstadoUnidad;
 import concesionaria.model.enums.TipoVehiculo;
-import concesionaria.repository.VehiculoRepository;
+import concesionaria.interfaces.VehiculoRepository;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -65,8 +67,38 @@ public class TestConcesionariaService {
         if (!"AUTO-TEST".equals(registrado.getCodigoInventario())) throw new AssertionError("No se asignó el código persistido");
         if (repositorio.guardarLlamadas != 1) throw new AssertionError("Guardar debía llamarse una vez");
 
+        Automovil normalizado = new Automovil("tOyOtA", "cOROLLA", 2026, "bLANCO PERLADO",
+                EstadoUnidad.CERO_KM, 0, 20000000.0, "sEDÁN");
+        Vehiculo guardadoNormalizado = servicio.registrarVehiculo(normalizado);
+        if (!"Toyota".equals(guardadoNormalizado.getMarca())
+                || !"Corolla".equals(guardadoNormalizado.getModelo())
+                || !"Blanco Perlado".equals(guardadoNormalizado.getColor())
+                || !"Sedán".equals(((Automovil) guardadoNormalizado).getCarroceria())) {
+            throw new AssertionError("Los textos no se normalizaron a formato legible");
+        }
+
         String reporte = servicio.generarReporteDirectivos();
-        if (!reporte.contains("AUTOMOVIL        | 1") || !reporte.contains("CERO_KM          | 1") ||
+        Camioneta camioneta = new Camioneta("fORD", "rANGER LIMITED", 2026, "aZUL BELICE",
+                EstadoUnidad.CERO_KM, 0, 47000000.0, "pICK-UP DOBLE CABINA");
+        Vehiculo camionetaNormalizada = servicio.registrarVehiculo(camioneta);
+        if (!"Ford".equals(camionetaNormalizada.getMarca())
+                || !"Ranger Limited".equals(camionetaNormalizada.getModelo())
+                || !"Azul Belice".equals(camionetaNormalizada.getColor())
+                || !"Pick-up Doble Cabina".equals(((Camioneta) camionetaNormalizada).getCarroceria())) {
+            throw new AssertionError("La camioneta no se normalizó correctamente");
+        }
+
+        Motocicleta motocicleta = new Motocicleta("YAMAHA", "mT-03", 2026, "aZUL RACING",
+                EstadoUnidad.CERO_KM, 0, 9450000.0, "nAKED");
+        Vehiculo motocicletaNormalizada = servicio.registrarVehiculo(motocicleta);
+        if (!"Yamaha".equals(motocicletaNormalizada.getMarca())
+                || !"MT-03".equals(motocicletaNormalizada.getModelo())
+                || !"Azul Racing".equals(motocicletaNormalizada.getColor())
+                || !"Naked".equals(((Motocicleta) motocicletaNormalizada).getTipoMotocicleta())) {
+            throw new AssertionError("La motocicleta no se normalizó correctamente");
+        }
+
+        if (!reporte.contains("AUTOMOVIL        | 2") || !reporte.contains("CERO_KM          | 2") ||
                 !reporte.contains("AUTO-TEST") || !reporte.contains("Código") || !reporte.contains("Detalle")) {
             throw new AssertionError("Reporte directivo incompleto");
         }

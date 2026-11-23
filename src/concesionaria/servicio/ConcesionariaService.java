@@ -8,10 +8,11 @@ import concesionaria.model.Motocicleta;
 import concesionaria.model.Vehiculo;
 import concesionaria.model.enums.EstadoUnidad;
 import concesionaria.model.enums.TipoVehiculo;
-import concesionaria.repository.VehiculoRepository;
+import concesionaria.interfaces.VehiculoRepository;
 
 import java.time.Year;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * Coordina las operaciones de negocio de la concesionaria.
@@ -28,6 +29,7 @@ public class ConcesionariaService {
     }
 
     public Vehiculo registrarVehiculo(Vehiculo vehiculo) throws DatoVehiculoInvalidoException {
+        normalizarTextosVehiculo(vehiculo);
         validarVehiculo(vehiculo);
         return repositorio.guardar(vehiculo);
     }
@@ -64,9 +66,9 @@ public class ConcesionariaService {
         reporte.append("USADO            | ").append(usados).append("\n\n");
 
         reporte.append("Vehículos\n");
-        reporte.append("%-12s | %-12s | %-16s | %-20s | %-4s | %-16s | %-8s | %-10s | %-14s | %-22s%n".formatted(
-                "Código", "Tipo", "Marca", "Modelo", "Año", "Color", "Estado", "Km", "Precio", "Detalle"));
-        reporte.append("---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n");
+        reporte.append("%-12s | %-12s | %-16s | %-20s | %-4s | %-16s | %-8s | %-10s | %-14s | %-22s | %-20s | %-8s%n".formatted(
+                "Código", "Tipo", "Marca", "Modelo", "Año", "Color", "Estado", "Km", "Precio", "Detalle", "Categoría", "Entrega"));
+        reporte.append("-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n");
 
         if (vehiculos.isEmpty()) {
             reporte.append("No hay vehículos registrados.\n");
@@ -83,7 +85,7 @@ public class ConcesionariaService {
                 detalle = ((Motocicleta) vehiculo).getTipoMotocicleta();
             }
 
-            reporte.append("%-12s | %-12s | %-16s | %-20s | %-4s | %-16s | %-8s | %-10s | %-14s | %-22s%n".formatted(
+            reporte.append("%-12s | %-12s | %-16s | %-20s | %-4s | %-16s | %-8s | %-10s | %-14s | %-22s | %-20s | %-8s%n".formatted(
                     valorOGuion(vehiculo.getCodigoInventario()),
                     vehiculo.obtenerTipoVehiculo() != null ? vehiculo.obtenerTipoVehiculo().getDescripcion() : "-",
                     valorOGuion(vehiculo.getMarca()),
@@ -93,7 +95,9 @@ public class ConcesionariaService {
                     vehiculo.getEstado() != null ? vehiculo.getEstado().getDescripcion() : "-",
                     vehiculo.getKilometraje() != null ? vehiculo.getKilometraje().toString() : "-",
                     vehiculo.getPrecioLista() != null ? "$" + vehiculo.getPrecioLista() : "-",
-                    valorOGuion(detalle)));
+                    valorOGuion(detalle),
+                    vehiculo.obtenerCategoriaComercial(),
+                    vehiculo.esAptoEntregaInmediata() ? "Sí" : "No"));
         }
         return reporte.toString();
     }
@@ -130,6 +134,69 @@ public class ConcesionariaService {
             throw new VehiculoNoEncontradoException("No existe el vehículo con el código indicado", codigo);
         }
         return true;
+    }
+
+    private void normalizarTextosVehiculo(Vehiculo vehiculo) {
+        if (vehiculo == null) {
+            return;
+        }
+
+        vehiculo.setMarca(normalizarTexto(vehiculo.getMarca()));
+        vehiculo.setModelo(normalizarTexto(vehiculo.getModelo()));
+        vehiculo.setColor(normalizarTexto(vehiculo.getColor()));
+
+        if (vehiculo instanceof Automovil) {
+            Automovil automovil = (Automovil) vehiculo;
+            automovil.setCarroceria(normalizarTexto(automovil.getCarroceria()));
+        } else if (vehiculo instanceof Camioneta) {
+            Camioneta camioneta = (Camioneta) vehiculo;
+            camioneta.setCarroceria(normalizarTexto(camioneta.getCarroceria()));
+        } else if (vehiculo instanceof Motocicleta) {
+            Motocicleta motocicleta = (Motocicleta) vehiculo;
+            motocicleta.setTipoMotocicleta(normalizarTexto(motocicleta.getTipoMotocicleta()));
+        }
+    }
+
+    private String normalizarTexto(String texto) {
+        if (texto == null) {
+            return null;
+        }
+
+        String limpio = texto.trim().replaceAll("\\s+", " ");
+        if (limpio.isEmpty()) {
+            return limpio;
+        }
+
+        String[] palabras = limpio.split(" ");
+        StringBuilder normalizado = new StringBuilder();
+
+        for (int i = 0; i < palabras.length; i++) {
+            if (i > 0) {
+                normalizado.append(' ');
+            }
+
+            String palabra = palabras[i];
+            if (esSigla(palabra)) {
+                normalizado.append(palabra.toUpperCase(Locale.ROOT));
+            } else {
+                String minuscula = palabra.toLowerCase(Locale.ROOT);
+                normalizado.append(Character.toUpperCase(minuscula.charAt(0)))
+                        .append(minuscula.substring(1));
+            }
+        }
+        return normalizado.toString();
+    }
+
+    private boolean esSigla(String palabra) {
+        String limpia = palabra.toUpperCase(Locale.ROOT);
+        return limpia.equals("SUV")
+                || limpia.equals("GTI")
+                || limpia.equals("GR-S")
+                || limpia.equals("MT-03")
+                || limpia.equals("HRC")
+                || limpia.equals("BMW")
+                || limpia.equals("GTR")
+                || limpia.equals("4X4");
     }
 
     private void validarVehiculo(Vehiculo vehiculo) throws DatoVehiculoInvalidoException {

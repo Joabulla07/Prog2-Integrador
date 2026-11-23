@@ -4,7 +4,7 @@ import concesionaria.model.Automovil;
 import concesionaria.model.Vehiculo;
 import concesionaria.model.enums.EstadoUnidad;
 import concesionaria.model.enums.TipoVehiculo;
-import concesionaria.repository.VehiculoRepository;
+import concesionaria.interfaces.VehiculoRepository;
 import concesionaria.servicio.ConcesionariaService;
 
 import java.io.ByteArrayInputStream;
@@ -38,7 +38,7 @@ public class TestConsolaApp {
         repositorio.guardar(new Automovil("Toyota", "Corolla", 2026, "Blanco",
                 EstadoUnidad.CERO_KM, 0, 20000000.0, "Sedán"));
 
-        ByteArrayInputStream input = new ByteArrayInputStream("4\n0\n10\n0\n0\n".getBytes(StandardCharsets.UTF_8));
+        ByteArrayInputStream input = new ByteArrayInputStream("4\n0\n10\n0\n11\n0\n12\n0\n13\n0\n0\n".getBytes(StandardCharsets.UTF_8));
         ValidadorEntrada validador = new ValidadorEntrada(new Scanner(input, StandardCharsets.UTF_8));
         ConsolaApp app = new ConsolaApp(new ConcesionariaService(repositorio), validador);
         app.iniciar();

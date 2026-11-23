@@ -25,25 +25,6 @@ El sistema SHALL proporcionar una interfaz genérica parametrizada `RepositorioG
 - **WHEN** se invoca eliminarPorCodigo(ID codigo) con un identificador existente
 - **THEN** la entidad se elimina de la persistencia
 
-### Requirement: Índice genérico con Map tipado
-El sistema SHALL proporcionar una clase genérica `IndiceGenerico<K, V extends Identificable>` respaldada internamente por un Map<K, V> para indexar entidades en memoria con tipado seguro.
-
-#### Scenario: Agregar entidad al índice
-- **WHEN** se invoca agregar(K clave, V valor) en IndiceGenerico
-- **THEN** la entidad se almacena en el Map interno con la clave especificada
-
-#### Scenario: Buscar entidad por clave
-- **WHEN** se invoca buscar(K clave) en IndiceGenerico
-- **THEN** se devuelve la entidad asociada a la clave o null si no existe
-
-#### Scenario: Verificar existencia de clave
-- **WHEN** se invoca contiene(K clave) en IndiceGenerico
-- **THEN** se devuelve true si la clave existe en el índice, false en caso contrario
-
-#### Scenario: Eliminar entidad del índice
-- **WHEN** se invoca eliminar(K clave) en IndiceGenerico
-- **THEN** la entidad se elimina del Map interno
-
 ### Requirement: Repositorio específico de vehículos
 El sistema SHALL proporcionar una interfaz `VehiculoRepository extends RepositorioGenerico<Vehiculo, String>` que herede las operaciones CRUD genéricas y declare métodos específicos del dominio.
 

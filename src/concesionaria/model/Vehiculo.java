@@ -21,8 +21,6 @@ import java.util.Objects;
  */
 public abstract class Vehiculo implements Identificable, EvaluatableComercial, Serializable, Comparable<Vehiculo> {
 
-    private static final long serialVersionUID = 1L;
-
     private String codigoInventario;
     private String marca;
     private String modelo;

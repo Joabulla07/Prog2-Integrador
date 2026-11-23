@@ -1,7 +1,6 @@
 package concesionaria.ui;
 
 import java.lang.reflect.Method;
-import java.util.Locale;
 import java.util.Scanner;
 
 /**
@@ -54,6 +53,24 @@ public class ValidadorEntrada {
                 System.out.println("Error: " + etiqueta + " debe estar entre " + min + " y " + max + ".");
             } catch (NumberFormatException e) {
                 System.out.println("Error: " + etiqueta + " debe ser un número entero.");
+            }
+        }
+    }
+
+    public void esperarOpcionCero() {
+        while (true) {
+            if (!scanner.hasNextLine()) {
+                continue;
+            }
+            String texto = scanner.nextLine().trim();
+            try {
+                Integer valor = Integer.valueOf(texto);
+                if (valor == 0) {
+                    return;
+                }
+                System.out.println("Error: ingrese 0 para volver al menú principal.");
+            } catch (NumberFormatException e) {
+                System.out.println("Error: ingrese 0 para volver al menú principal.");
             }
         }
     }
