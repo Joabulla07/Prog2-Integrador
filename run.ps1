@@ -49,3 +49,21 @@ if ($LASTEXITCODE -ne 0) {
 # 3. Esperar inicialización y ejecución de scripts SQL
 Write-Host "Esperando 30 segundos para inicialización..."
 Start-Sleep -Seconds 30
+
+# 4. Compilar e iniciar el launcher de consola
+Write-Host "Compilando aplicación Java..."
+$sourceFiles = Get-ChildItem src/concesionaria -Recurse -Filter '*.java' | ForEach-Object { $_.FullName }
+New-Item -ItemType Directory -Force out | Out-Null
+javac -encoding UTF-8 -cp ".;lib/*" -d out $sourceFiles
+if ($LASTEXITCODE -ne 0) {
+    Write-Error "Error al compilar la aplicación Java."
+    exit $LASTEXITCODE
+}
+
+if ([System.Environment]::OSVersion.Platform -eq 'Win32NT') {
+    Write-Host "Abriendo consola separada..."
+    Start-Process -FilePath ".\ejecutar.bat"
+} else {
+    Write-Host "Iniciando launcher de consola..."
+    java -cp "out:lib/*" concesionaria.ui.LauncherConsola
+}

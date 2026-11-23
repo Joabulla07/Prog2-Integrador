@@ -52,15 +52,48 @@ public class ConcesionariaService {
         }
 
         StringBuilder reporte = new StringBuilder();
-        reporte.append("Reporte directivo\n");
-        reporte.append("AUTOMOVIL: ").append(automoviles).append("\n");
-        reporte.append("CAMIONETA: ").append(camionetas).append("\n");
-        reporte.append("MOTOCICLETA: ").append(motocicletas).append("\n");
-        reporte.append("CERO_KM: ").append(ceroKm).append("\n");
-        reporte.append("USADO: ").append(usados).append("\n");
-        reporte.append("Fichas:\n");
+        reporte.append("REPORTE DIRECTIVO\n\n");
+        reporte.append("Tipo             | Cantidad\n");
+        reporte.append("-----------------|---------\n");
+        reporte.append("AUTOMOVIL        | ").append(automoviles).append("\n");
+        reporte.append("CAMIONETA        | ").append(camionetas).append("\n");
+        reporte.append("MOTOCICLETA      | ").append(motocicletas).append("\n\n");
+        reporte.append("Estado           | Cantidad\n");
+        reporte.append("-----------------|---------\n");
+        reporte.append("CERO_KM          | ").append(ceroKm).append("\n");
+        reporte.append("USADO            | ").append(usados).append("\n\n");
+
+        reporte.append("Vehículos\n");
+        reporte.append("%-12s | %-12s | %-16s | %-20s | %-4s | %-16s | %-8s | %-10s | %-14s | %-22s%n".formatted(
+                "Código", "Tipo", "Marca", "Modelo", "Año", "Color", "Estado", "Km", "Precio", "Detalle"));
+        reporte.append("---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n");
+
+        if (vehiculos.isEmpty()) {
+            reporte.append("No hay vehículos registrados.\n");
+            return reporte.toString();
+        }
+
         for (Vehiculo vehiculo : vehiculos) {
-            reporte.append("- ").append(vehiculo.obtenerFichaDirectiva()).append("\n");
+            String detalle = "";
+            if (vehiculo instanceof Automovil) {
+                detalle = ((Automovil) vehiculo).getCarroceria();
+            } else if (vehiculo instanceof Camioneta) {
+                detalle = ((Camioneta) vehiculo).getCarroceria();
+            } else if (vehiculo instanceof Motocicleta) {
+                detalle = ((Motocicleta) vehiculo).getTipoMotocicleta();
+            }
+
+            reporte.append("%-12s | %-12s | %-16s | %-20s | %-4s | %-16s | %-8s | %-10s | %-14s | %-22s%n".formatted(
+                    valorOGuion(vehiculo.getCodigoInventario()),
+                    vehiculo.obtenerTipoVehiculo() != null ? vehiculo.obtenerTipoVehiculo().getDescripcion() : "-",
+                    valorOGuion(vehiculo.getMarca()),
+                    valorOGuion(vehiculo.getModelo()),
+                    vehiculo.getAnio() != null ? vehiculo.getAnio().toString() : "-",
+                    valorOGuion(vehiculo.getColor()),
+                    vehiculo.getEstado() != null ? vehiculo.getEstado().getDescripcion() : "-",
+                    vehiculo.getKilometraje() != null ? vehiculo.getKilometraje().toString() : "-",
+                    vehiculo.getPrecioLista() != null ? "$" + vehiculo.getPrecioLista() : "-",
+                    valorOGuion(detalle)));
         }
         return reporte.toString();
     }
@@ -151,6 +184,10 @@ public class ConcesionariaService {
         if (estado == EstadoUnidad.USADO && kilometraje <= 0) {
             throw new DatoVehiculoInvalidoException("Un vehículo USADO debe tener kilometraje mayor a cero", "kilometraje", String.valueOf(kilometraje));
         }
+    }
+
+    private String valorOGuion(String valor) {
+        return valor == null || valor.trim().isEmpty() ? "-" : valor;
     }
 
     private void validarObligatorio(String campo, String valor) throws DatoVehiculoInvalidoException {

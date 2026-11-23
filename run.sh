@@ -49,3 +49,15 @@ fi
 echo "Esperando 30 segundos para inicialización..."
 sleep 30
 
+# 4. Compilar e iniciar el launcher de consola
+echo "Compilando aplicación Java..."
+mkdir -p out
+find src/concesionaria -name '*.java' -print0 | xargs -0 javac -encoding UTF-8 -cp '.:lib/*' -d out
+if [ $? -ne 0 ]; then
+    echo "Error al compilar la aplicación Java."
+    exit 1
+fi
+
+echo "Iniciando launcher de consola..."
+java -cp 'out:lib/*' concesionaria.ui.LauncherConsola
+

@@ -31,9 +31,13 @@ public class ConsolaApp {
     public void iniciar() {
         boolean salir = false;
         while (!salir) {
+            limpiarPantalla();
             mostrarMenu();
             int opcion = entrada.leerEnteroWrapper("Opción", 0, 10);
             try {
+                if (opcion != 0) {
+                    limpiarPantalla();
+                }
                 switch (opcion) {
                     case 1: registrarAutomovil(); break;
                     case 2: registrarCamioneta(); break;
@@ -47,7 +51,9 @@ public class ConsolaApp {
                     case 10: System.out.println(servicio.generarReporteDirectivos()); break;
                     case 0:
                         salir = true;
+                        limpiarPantalla();
                         System.out.println("Saliendo de la aplicación.");
+                        System.exit(0);
                         break;
                     default:
                         System.out.println("Opción fuera del rango disponible.");
@@ -61,7 +67,31 @@ public class ConsolaApp {
             } catch (IllegalArgumentException e) {
                 System.out.println("Error: " + e.getMessage());
             }
+
+            if (opcion != 0) {
+                esperarVolverMenu();
+            }
         }
+    }
+
+    public static void limpiarPantalla() {
+        try {
+            String os = System.getProperty("os.name", "").toLowerCase();
+            if (os.contains("win")) {
+                new ProcessBuilder("cmd", "/c", "cls").inheritIO().start().waitFor();
+            } else {
+                new ProcessBuilder("clear").inheritIO().start().waitFor();
+            }
+        } catch (Exception e) {
+            System.out.print("\033[H\033[2J");
+            System.out.flush();
+        }
+    }
+
+    private void esperarVolverMenu() {
+        System.out.println("\n0. Volver al menú principal");
+        entrada.leerEnteroWrapper("Volver", 0, 0);
+        limpiarPantalla();
     }
 
     private void mostrarMenu() {

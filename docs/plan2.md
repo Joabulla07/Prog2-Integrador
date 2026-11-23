@@ -251,8 +251,13 @@
 * **Especificaciones técnicas**:
   * `ejecutar.bat` en raíz con `chcp 65001 >nul` y `start "Concesionaria Multimarcas - TFI Programacion II" cmd /k "cls && java -cp "out;lib/*" concesionaria.ui.ConsolaApp"`.
   * Opcional `LauncherConsola.java` en `ui` usando `ProcessBuilder` con `cmd.exe /c start ...` y `System.exit(0)`.
+  * Cada vez que se realiza una acciòn debe limpiarse la consola. Por ejemplo al seleccionar una opciòn del menù, se borra el menù y se accede a la opcion solicitada mostrando solo esa opcion.
+  luego volver al menu y mostrar el menu. Agregar una opcion para volver al menu principal.
+  * Agregar al run.ps1 y al run.sh para que inicie el launcher.
 * **Criterios de aceptación**:
   * Al correr `ejecutar.bat`, se abre una consola nueva en negro mostrando solo el encabezado y el menú de `ConsolaApp`.
+  * opcion de volver al menu principal.
+  * scripts con el launcher.
 
 ### US-15 — Verificación Integral, Generación de JavaDoc y Cierre de Entrega
 

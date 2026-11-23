@@ -32,11 +32,13 @@ public class TestConsolaApp {
     }
 
     public static void main(String[] args) {
+        ConsolaApp.limpiarPantalla();
+
         RepositorioPrueba repositorio = new RepositorioPrueba();
         repositorio.guardar(new Automovil("Toyota", "Corolla", 2026, "Blanco",
                 EstadoUnidad.CERO_KM, 0, 20000000.0, "Sedán"));
 
-        ByteArrayInputStream input = new ByteArrayInputStream("4\n10\n0\n".getBytes(StandardCharsets.UTF_8));
+        ByteArrayInputStream input = new ByteArrayInputStream("4\n0\n10\n0\n0\n".getBytes(StandardCharsets.UTF_8));
         ValidadorEntrada validador = new ValidadorEntrada(new Scanner(input, StandardCharsets.UTF_8));
         ConsolaApp app = new ConsolaApp(new ConcesionariaService(repositorio), validador);
         app.iniciar();

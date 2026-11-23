@@ -66,15 +66,15 @@ public class TestConcesionariaService {
         if (repositorio.guardarLlamadas != 1) throw new AssertionError("Guardar debía llamarse una vez");
 
         String reporte = servicio.generarReporteDirectivos();
-        if (!reporte.contains("AUTOMOVIL: 1") || !reporte.contains("CERO_KM: 1") ||
-                !reporte.contains("Código: AUTO-TEST")) {
+        if (!reporte.contains("AUTOMOVIL        | 1") || !reporte.contains("CERO_KM          | 1") ||
+                !reporte.contains("AUTO-TEST") || !reporte.contains("Código") || !reporte.contains("Detalle")) {
             throw new AssertionError("Reporte directivo incompleto");
         }
 
         RepositorioPrueba repositorioVacio = new RepositorioPrueba();
         String reporteVacio = new ConcesionariaService(repositorioVacio).generarReporteDirectivos();
-        if (!reporteVacio.contains("AUTOMOVIL: 0") || !reporteVacio.contains("USADO: 0") ||
-                !reporteVacio.contains("Fichas:\n")) {
+        if (!reporteVacio.contains("AUTOMOVIL        | 0") || !reporteVacio.contains("USADO            | 0") ||
+                !reporteVacio.contains("No hay vehículos registrados.")) {
             throw new AssertionError("Reporte vacío incorrecto");
         }
 
