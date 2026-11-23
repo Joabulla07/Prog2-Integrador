@@ -146,8 +146,35 @@ public class ConsolaApp {
             System.out.println("No hay " + descripcion + ".");
             return;
         }
+
+        System.out.println("\n%-12s | %-12s | %-16s | %-20s | %-4s | %-16s | %-8s | %-10s | %-14s | %-22s".formatted(
+                "Código", "Tipo", "Marca", "Modelo", "Año", "Color", "Estado", "Km", "Precio", "Detalle"));
+        System.out.println("------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
         for (Vehiculo vehiculo : vehiculos) {
-            System.out.println("- " + vehiculo);
+            String detalle = "";
+            if (vehiculo instanceof concesionaria.model.Automovil) {
+                detalle = ((concesionaria.model.Automovil) vehiculo).getCarroceria();
+            } else if (vehiculo instanceof concesionaria.model.Camioneta) {
+                detalle = ((concesionaria.model.Camioneta) vehiculo).getCarroceria();
+            } else if (vehiculo instanceof concesionaria.model.Motocicleta) {
+                detalle = ((concesionaria.model.Motocicleta) vehiculo).getTipoMotocicleta();
+            }
+
+            System.out.printf("%-12s | %-12s | %-16s | %-20s | %-4s | %-16s | %-8s | %-10s | %-14s | %-22s%n",
+                    valorOGuion(vehiculo.getCodigoInventario()),
+                    vehiculo.obtenerTipoVehiculo() != null ? vehiculo.obtenerTipoVehiculo().getDescripcion() : "-",
+                    valorOGuion(vehiculo.getMarca()),
+                    valorOGuion(vehiculo.getModelo()),
+                    vehiculo.getAnio() != null ? vehiculo.getAnio() : "-",
+                    valorOGuion(vehiculo.getColor()),
+                    vehiculo.getEstado() != null ? vehiculo.getEstado().getDescripcion() : "-",
+                    vehiculo.getKilometraje() != null ? vehiculo.getKilometraje() : "-",
+                    vehiculo.getPrecioLista() != null ? "$" + vehiculo.getPrecioLista() : "-",
+                    valorOGuion(detalle));
         }
+    }
+
+    private String valorOGuion(String valor) {
+        return valor == null || valor.trim().isEmpty() ? "-" : valor;
     }
 }
