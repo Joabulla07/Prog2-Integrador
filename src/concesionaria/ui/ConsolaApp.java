@@ -96,13 +96,13 @@ public class ConsolaApp {
                     case 1: registrarAutomovil(); break;
                     case 2: registrarCamioneta(); break;
                     case 3: registrarMotocicleta(); break;
-                    case 4: listar(servicio.listarTodos(), "vehículos registrados"); break;
-                    case 5: listar(servicio.listarPorEstado(EstadoUnidad.CERO_KM), "vehículos 0 km"); break;
-                    case 6: listar(servicio.listarPorEstado(EstadoUnidad.USADO), "vehículos usados"); break;
+                    case 4: mostrarTitulo("LISTAR TODOS LOS VEHÍCULOS"); listar(servicio.listarTodos(), "vehículos registrados"); break;
+                    case 5: mostrarTitulo("LISTAR UNIDADES 0 KM"); listar(servicio.listarPorEstado(EstadoUnidad.CERO_KM), "vehículos 0 km"); break;
+                    case 6: mostrarTitulo("LISTAR UNIDADES USADAS"); listar(servicio.listarPorEstado(EstadoUnidad.USADO), "vehículos usados"); break;
                     case 7: filtrarPorTipo(); break;
                     case 8: buscarPorCodigo(); break;
                     case 9: eliminarPorCodigo(); break;
-                    case 10: System.out.println(centrarTexto(servicio.generarReporteDirectivos())); break;
+                    case 10: mostrarTitulo("REPORTE PARA DIRECTIVOS"); System.out.println(centrarTexto(servicio.generarReporteDirectivos())); break;
                     case 11: ordenarPorAnio(); break;
                     case 12: ordenarPorPrecio(); break;
                     case 13: ordenarPorMarcaModelo(); break;
@@ -178,8 +178,18 @@ public class ConsolaApp {
         System.out.println(centrarTexto("0. Salir"));
     }
 
+    private void mostrarTitulo(String titulo) {
+        String cyan = "\u001B[36m";
+        String reset = "\u001B[0m";
+        System.out.println();
+        System.out.println(cyan + centrarTexto("════════════════════════════════════════════════════════════════════════════════") + reset);
+        System.out.println(cyan + centrarTexto("  " + titulo + "  ") + reset);
+        System.out.println(cyan + centrarTexto("════════════════════════════════════════════════════════════════════════════════") + reset);
+    }
+
     private void registrarAutomovil() throws DatoVehiculoInvalidoException {
-        centrarVerticalmente(10);
+        centrarVerticalmente(30);
+        mostrarTitulo("REGISTRAR AUTOMÓVIL");
         String marca = entrada.leerTextoObligatorio("Marca");
         String modelo = entrada.leerTextoObligatorio("Modelo");
         Integer anio = entrada.leerEnteroWrapper("Año", 1950, java.time.Year.now().getValue() + 1);
@@ -193,7 +203,8 @@ public class ConsolaApp {
     }
 
     private void registrarCamioneta() throws DatoVehiculoInvalidoException {
-        centrarVerticalmente(10);
+        centrarVerticalmente(30);
+        mostrarTitulo("REGISTRAR CAMIONETA");
         String marca = entrada.leerTextoObligatorio("Marca");
         String modelo = entrada.leerTextoObligatorio("Modelo");
         Integer anio = entrada.leerEnteroWrapper("Año", 1950, java.time.Year.now().getValue() + 1);
@@ -207,7 +218,8 @@ public class ConsolaApp {
     }
 
     private void registrarMotocicleta() throws DatoVehiculoInvalidoException {
-        centrarVerticalmente(10);
+        centrarVerticalmente(30);
+        mostrarTitulo("REGISTRAR MOTOCICLETA");
         String marca = entrada.leerTextoObligatorio("Marca");
         String modelo = entrada.leerTextoObligatorio("Modelo");
         Integer anio = entrada.leerEnteroWrapper("Año", 1950, java.time.Year.now().getValue() + 1);
@@ -221,44 +233,54 @@ public class ConsolaApp {
     }
 
     private void filtrarPorTipo() {
-        centrarVerticalmente(5);
+        centrarVerticalmente(30);
+        mostrarTitulo("FILTRAR POR TIPO DE VEHÍCULO");
         TipoVehiculo tipo = entrada.leerEnum("Tipo de vehículo", TipoVehiculo.class);
         listar(servicio.listarPorTipo(tipo), "vehículos de tipo " + tipo.getDescripcion());
     }
 
     private void buscarPorCodigo() throws VehiculoNoEncontradoException {
-        centrarVerticalmente(5);
+        centrarVerticalmente(30);
+        mostrarTitulo("BUSCAR VEHÍCULO POR CÓDIGO");
         String codigo = entrada.leerTextoObligatorio("Código de inventario");
         Vehiculo vehiculo = servicio.obtenerVehiculoPorCodigo(codigo);
         listar(Collections.singletonList(vehiculo), "vehículo solicitado");
     }
 
     private void ordenarPorAnio() {
+        centrarVerticalmente(30);
+        mostrarTitulo("LISTAR VEHÍCULOS ORDENADOS POR AÑO");
         List<Vehiculo> vehiculos = new ArrayList<>(servicio.listarTodos());
         vehiculos.sort(ComparadoresVehiculo.POR_ANIO_ASC);
         listar(vehiculos, "vehículos ordenados por año");
     }
 
     private void ordenarPorPrecio() {
+        centrarVerticalmente(30);
+        mostrarTitulo("LISTAR VEHÍCULOS ORDENADOS POR PRECIO");
         List<Vehiculo> vehiculos = new ArrayList<>(servicio.listarTodos());
         vehiculos.sort(ComparadoresVehiculo.POR_PRECIO_ASC);
         listar(vehiculos, "vehículos ordenados por precio");
     }
 
     private void ordenarPorMarcaModelo() {
+        centrarVerticalmente(30);
+        mostrarTitulo("LISTAR VEHÍCULOS ORDENADOS POR MARCA Y MODELO");
         List<Vehiculo> vehiculos = new ArrayList<>(servicio.listarTodos());
         vehiculos.sort(ComparadoresVehiculo.POR_MARCA_MODELO);
         listar(vehiculos, "vehículos ordenados por marca y modelo");
     }
 
     private void eliminarPorCodigo() throws VehiculoNoEncontradoException {
-        centrarVerticalmente(5);
+        centrarVerticalmente(30);
+        mostrarTitulo("ELIMINAR VEHÍCULO POR CÓDIGO");
         String codigo = entrada.leerTextoObligatorio("Código de inventario");
         servicio.eliminarVehiculo(codigo);
         System.out.println(centrarTexto("Vehículo eliminado: " + codigo));
     }
 
     private void listar(List<Vehiculo> vehiculos, String descripcion) {
+        //centrarVerticalmente(5);
         if (vehiculos == null || vehiculos.isEmpty()) {
             System.out.println(centrarTexto("No hay " + descripcion + "."));
             return;
