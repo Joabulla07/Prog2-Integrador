@@ -59,5 +59,6 @@ if [ $? -ne 0 ]; then
 fi
 
 echo "Iniciando launcher de consola..."
+stty cols 200 rows 60 2>/dev/null || true
 java -cp 'out:lib/*' concesionaria.ui.LauncherConsola
 

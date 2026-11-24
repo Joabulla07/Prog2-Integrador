@@ -10,6 +10,8 @@ import concesionaria.model.Vehiculo;
 import concesionaria.model.enums.EstadoUnidad;
 import concesionaria.model.enums.TipoVehiculo;
 import concesionaria.servicio.ConcesionariaService;
+import org.jline.terminal.Terminal;
+import org.jline.terminal.TerminalBuilder;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -24,12 +26,34 @@ public class ConsolaApp {
 
     private final ConcesionariaService servicio;
     private final ValidadorEntrada entrada;
+    private final Terminal terminal;
 
     public ConsolaApp(ConcesionariaService servicio, ValidadorEntrada entrada) {
         if (servicio == null) throw new IllegalArgumentException("El servicio no puede ser null");
         if (entrada == null) throw new IllegalArgumentException("El validador no puede ser null");
         this.servicio = servicio;
         this.entrada = entrada;
+        try {
+            this.terminal = TerminalBuilder.builder().build();
+        } catch (Exception e) {
+            throw new RuntimeException("No se pudo inicializar el terminal", e);
+        }
+    }
+
+    private String centrarTexto(String texto) {
+        int ancho = terminal.getWidth();
+        int padding = (ancho - texto.length()) / 2;
+        if (padding < 0) padding = 0;
+        return " ".repeat(padding) + texto;
+    }
+
+    private void centrarVerticalmente(int lineasContenido) {
+        int altura = terminal.getHeight();
+        int paddingVertical = (altura - lineasContenido) / 2;
+        if (paddingVertical < 0) paddingVertical = 0;
+        for (int i = 0; i < paddingVertical; i++) {
+            System.out.println();
+        }
     }
 
     public void iniciar() {
@@ -102,21 +126,30 @@ public class ConsolaApp {
     }
 
     private void mostrarMenu() {
-        System.out.println("\n=== CONCESIONARIA ===");
-        System.out.println("1. Registrar Automóvil");
-        System.out.println("2. Registrar Camioneta");
-        System.out.println("3. Registrar Motocicleta");
-        System.out.println("4. Listar todos los vehículos");
-        System.out.println("5. Listar unidades 0 km");
-        System.out.println("6. Listar unidades usadas");
-        System.out.println("7. Filtrar por tipo de vehículo");
-        System.out.println("8. Buscar vehículo por código");
-        System.out.println("9. Eliminar vehículo por código");
-        System.out.println("10. Ver reporte para directivos");
-        System.out.println("11. Listar ordenados por año");
-        System.out.println("12. Listar ordenados por precio");
-        System.out.println("13. Listar ordenados por marca y modelo");
-        System.out.println("0. Salir");
+        String cyan = "\u001B[36m";
+        String reset = "\u001B[0m";
+
+        centrarVerticalmente(17);
+
+        System.out.println(cyan + centrarTexto("════════════════════════════════════════════════════════════════════════════════") + reset);
+        System.out.println(cyan + centrarTexto("                              CONCESIONARIA MULTIMARCAS                                  ") + reset);
+        System.out.println(cyan + centrarTexto("                                      TFI                                              ") + reset);
+        System.out.println(cyan + centrarTexto("════════════════════════════════════════════════════════════════════════════════") + reset);
+        System.out.println(centrarTexto("=== MENÚ PRINCIPAL ==="));
+        System.out.println(centrarTexto("1. Registrar Automóvil"));
+        System.out.println(centrarTexto("2. Registrar Camioneta"));
+        System.out.println(centrarTexto("3. Registrar Motocicleta"));
+        System.out.println(centrarTexto("4. Listar todos los vehículos"));
+        System.out.println(centrarTexto("5. Listar unidades 0 km"));
+        System.out.println(centrarTexto("6. Listar unidades usadas"));
+        System.out.println(centrarTexto("7. Filtrar por tipo de vehículo"));
+        System.out.println(centrarTexto("8. Buscar vehículo por código"));
+        System.out.println(centrarTexto("9. Eliminar vehículo por código"));
+        System.out.println(centrarTexto("10. Ver reporte para directivos"));
+        System.out.println(centrarTexto("11. Listar ordenados por año"));
+        System.out.println(centrarTexto("12. Listar ordenados por precio"));
+        System.out.println(centrarTexto("13. Listar ordenados por marca y modelo"));
+        System.out.println(centrarTexto("0. Salir"));
     }
 
     private void registrarAutomovil() throws DatoVehiculoInvalidoException {
