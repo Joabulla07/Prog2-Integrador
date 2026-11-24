@@ -159,7 +159,7 @@ public class ConsolaApp {
 
         System.out.println(cyan + centrarTexto("════════════════════════════════════════════════════════════════════════════════") + reset);
         System.out.println(cyan + centrarTexto("                              CONCESIONARIA MULTIMARCAS                                  ") + reset);
-        System.out.println(cyan + centrarTexto("                                      TFI                                              ") + reset);
+        System.out.println(cyan + centrarTexto("                                         TFI                                              ") + reset);
         System.out.println(cyan + centrarTexto("════════════════════════════════════════════════════════════════════════════════") + reset);
         System.out.println(centrarTexto("=== MENÚ PRINCIPAL ==="));
         System.out.println(centrarTexto("1. Registrar Automóvil"));
