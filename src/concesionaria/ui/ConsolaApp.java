@@ -32,23 +32,23 @@ public class ConsolaApp {
         if (servicio == null) throw new IllegalArgumentException("El servicio no puede ser null");
         if (entrada == null) throw new IllegalArgumentException("El validador no puede ser null");
         this.servicio = servicio;
-        this.entrada = entrada;
         try {
             this.terminal = TerminalBuilder.builder().build();
+            this.entrada = new ValidadorEntrada(new java.util.Scanner(System.in), terminal);
         } catch (Exception e) {
             throw new RuntimeException("No se pudo inicializar el terminal", e);
         }
     }
 
     private String centrarTexto(String texto) {
-        int ancho = terminal.getWidth();
+        int ancho = obtenerAnchoTerminal();
         int padding = (ancho - texto.length()) / 2;
         if (padding < 0) padding = 0;
         return " ".repeat(padding) + texto;
     }
 
     private void centrarVerticalmente(int lineasContenido) {
-        int altura = terminal.getHeight();
+        int altura = obtenerAlturaTerminal();
         int paddingVertical = (altura - lineasContenido) / 2;
         if (paddingVertical < 0) paddingVertical = 0;
         for (int i = 0; i < paddingVertical; i++) {
@@ -56,10 +56,36 @@ public class ConsolaApp {
         }
     }
 
+    private int obtenerAnchoTerminal() {
+        try {
+            int ancho = terminal.getWidth();
+            if (ancho > 0 && ancho < 10000) {
+                return ancho;
+            }
+        } catch (Exception e) {
+        }
+        return 80;
+    }
+
+    private int obtenerAlturaTerminal() {
+        try {
+            int altura = terminal.getHeight();
+            if (altura > 0 && altura < 10000) {
+                return altura;
+            }
+        } catch (Exception e) {
+        }
+        return 24;
+    }
+
     public void iniciar() {
         boolean salir = false;
         while (!salir) {
             limpiarPantalla();
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
+            }
             mostrarMenu();
             int opcion = entrada.leerEnteroWrapper("Opción", 0, 13);
             try {
@@ -76,27 +102,27 @@ public class ConsolaApp {
                     case 7: filtrarPorTipo(); break;
                     case 8: buscarPorCodigo(); break;
                     case 9: eliminarPorCodigo(); break;
-                    case 10: System.out.println(servicio.generarReporteDirectivos()); break;
+                    case 10: System.out.println(centrarTexto(servicio.generarReporteDirectivos())); break;
                     case 11: ordenarPorAnio(); break;
                     case 12: ordenarPorPrecio(); break;
                     case 13: ordenarPorMarcaModelo(); break;
                     case 0:
                         salir = true;
                         limpiarPantalla();
-                        System.out.println("Saliendo de la aplicación.");
+                        System.out.println(centrarTexto("Saliendo de la aplicación."));
                         System.exit(0);
                         break;
                     default:
-                        System.out.println("Opción fuera del rango disponible.");
+                        System.out.println(centrarTexto("Opción fuera del rango disponible."));
                 }
             } catch (DatoVehiculoInvalidoException e) {
-                System.out.println("Datos inválidos: " + e.getMessage());
+                System.out.println(centrarTexto("Datos inválidos: " + e.getMessage()));
             } catch (VehiculoNoEncontradoException e) {
-                System.out.println("No encontrado: " + e.getMessage());
+                System.out.println(centrarTexto("No encontrado: " + e.getMessage()));
             } catch (PersistenciaException e) {
-                System.out.println("Error de persistencia: " + e.getMessage());
+                System.out.println(centrarTexto("Error de persistencia: " + e.getMessage()));
             } catch (IllegalArgumentException e) {
-                System.out.println("Error: " + e.getMessage());
+                System.out.println(centrarTexto("Error: " + e.getMessage()));
             }
 
             if (opcion != 0) {
@@ -120,7 +146,7 @@ public class ConsolaApp {
     }
 
     private void esperarVolverMenu() {
-        System.out.println("\n0. Volver al menú principal");
+        System.out.println();
         entrada.esperarOpcionCero();
         limpiarPantalla();
     }
@@ -153,6 +179,7 @@ public class ConsolaApp {
     }
 
     private void registrarAutomovil() throws DatoVehiculoInvalidoException {
+        centrarVerticalmente(10);
         String marca = entrada.leerTextoObligatorio("Marca");
         String modelo = entrada.leerTextoObligatorio("Modelo");
         Integer anio = entrada.leerEnteroWrapper("Año", 1950, java.time.Year.now().getValue() + 1);
@@ -162,10 +189,11 @@ public class ConsolaApp {
         Double precio = entrada.leerDecimalWrapper("Precio de lista", 0.01);
         String carroceria = entrada.leerTextoObligatorio("Carrocería");
         Vehiculo registrado = servicio.registrarVehiculo(new Automovil(marca, modelo, anio, color, estado, kilometraje, precio, carroceria));
-        System.out.println("Automóvil registrado exitosamente. Código: " + registrado.getCodigoInventario());
+        System.out.println(centrarTexto("Automóvil registrado exitosamente. Código: " + registrado.getCodigoInventario()));
     }
 
     private void registrarCamioneta() throws DatoVehiculoInvalidoException {
+        centrarVerticalmente(10);
         String marca = entrada.leerTextoObligatorio("Marca");
         String modelo = entrada.leerTextoObligatorio("Modelo");
         Integer anio = entrada.leerEnteroWrapper("Año", 1950, java.time.Year.now().getValue() + 1);
@@ -175,10 +203,11 @@ public class ConsolaApp {
         Double precio = entrada.leerDecimalWrapper("Precio de lista", 0.01);
         String carroceria = entrada.leerTextoObligatorio("Carrocería");
         Vehiculo registrado = servicio.registrarVehiculo(new Camioneta(marca, modelo, anio, color, estado, kilometraje, precio, carroceria));
-        System.out.println("Camioneta registrada exitosamente. Código: " + registrado.getCodigoInventario());
+        System.out.println(centrarTexto("Camioneta registrada exitosamente. Código: " + registrado.getCodigoInventario()));
     }
 
     private void registrarMotocicleta() throws DatoVehiculoInvalidoException {
+        centrarVerticalmente(10);
         String marca = entrada.leerTextoObligatorio("Marca");
         String modelo = entrada.leerTextoObligatorio("Modelo");
         Integer anio = entrada.leerEnteroWrapper("Año", 1950, java.time.Year.now().getValue() + 1);
@@ -188,15 +217,17 @@ public class ConsolaApp {
         Double precio = entrada.leerDecimalWrapper("Precio de lista", 0.01);
         String tipoMotocicleta = entrada.leerTextoObligatorio("Tipo de motocicleta");
         Vehiculo registrado = servicio.registrarVehiculo(new Motocicleta(marca, modelo, anio, color, estado, kilometraje, precio, tipoMotocicleta));
-        System.out.println("Motocicleta registrada exitosamente. Código: " + registrado.getCodigoInventario());
+        System.out.println(centrarTexto("Motocicleta registrada exitosamente. Código: " + registrado.getCodigoInventario()));
     }
 
     private void filtrarPorTipo() {
+        centrarVerticalmente(5);
         TipoVehiculo tipo = entrada.leerEnum("Tipo de vehículo", TipoVehiculo.class);
         listar(servicio.listarPorTipo(tipo), "vehículos de tipo " + tipo.getDescripcion());
     }
 
     private void buscarPorCodigo() throws VehiculoNoEncontradoException {
+        centrarVerticalmente(5);
         String codigo = entrada.leerTextoObligatorio("Código de inventario");
         Vehiculo vehiculo = servicio.obtenerVehiculoPorCodigo(codigo);
         listar(Collections.singletonList(vehiculo), "vehículo solicitado");
@@ -221,20 +252,21 @@ public class ConsolaApp {
     }
 
     private void eliminarPorCodigo() throws VehiculoNoEncontradoException {
+        centrarVerticalmente(5);
         String codigo = entrada.leerTextoObligatorio("Código de inventario");
         servicio.eliminarVehiculo(codigo);
-        System.out.println("Vehículo eliminado: " + codigo);
+        System.out.println(centrarTexto("Vehículo eliminado: " + codigo));
     }
 
     private void listar(List<Vehiculo> vehiculos, String descripcion) {
         if (vehiculos == null || vehiculos.isEmpty()) {
-            System.out.println("No hay " + descripcion + ".");
+            System.out.println(centrarTexto("No hay " + descripcion + "."));
             return;
         }
 
-        System.out.println("\n%-12s | %-12s | %-16s | %-20s | %-4s | %-16s | %-8s | %-10s | %-14s | %-22s | %-20s | %-8s".formatted(
-                "Código", "Tipo", "Marca", "Modelo", "Año", "Color", "Estado", "Km", "Precio", "Detalle", "Categoría", "Entrega"));
-        System.out.println("-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
+        System.out.println(centrarTexto("\n%-12s | %-12s | %-16s | %-20s | %-4s | %-16s | %-8s | %-10s | %-14s | %-22s | %-20s | %-8s".formatted(
+                "Código", "Tipo", "Marca", "Modelo", "Año", "Color", "Estado", "Km", "Precio", "Detalle", "Categoría", "Entrega")));
+        System.out.println(centrarTexto("-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------"));
         for (Vehiculo vehiculo : vehiculos) {
             String detalle = "";
             if (vehiculo instanceof concesionaria.model.Automovil) {

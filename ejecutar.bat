@@ -10,4 +10,4 @@ if errorlevel 1 (
     exit /b 1
 )
 
-powershell -Command "Start-Process cmd -ArgumentList '/c chcp 65001 >nul && mode con:cols=240 lines=60 && cls && java -cp \"out;lib/*\" concesionaria.Main && pause' -WindowStyle Maximized"
+powershell -Command "Start-Process cmd -ArgumentList '/c chcp 65001 >nul && mode con:cols=120 lines=40 && cls && java -cp \"out;lib/*\" concesionaria.Main && pause' -WindowStyle Maximized"

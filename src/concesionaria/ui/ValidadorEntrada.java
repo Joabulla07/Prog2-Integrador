@@ -2,6 +2,7 @@ package concesionaria.ui;
 
 import java.lang.reflect.Method;
 import java.util.Scanner;
+import org.jline.terminal.Terminal;
 
 /**
  * Controles reutilizables para leer datos seguros desde consola.
@@ -9,21 +10,47 @@ import java.util.Scanner;
 public class ValidadorEntrada {
 
     private final Scanner scanner;
+    private final Terminal terminal;
 
     public ValidadorEntrada() {
-        this(new Scanner(System.in));
+        this(new Scanner(System.in), null);
     }
 
     public ValidadorEntrada(Scanner scanner) {
+        this(scanner, null);
+    }
+
+    public ValidadorEntrada(Scanner scanner, Terminal terminal) {
         if (scanner == null) {
             throw new IllegalArgumentException("El Scanner no puede ser null");
         }
         this.scanner = scanner;
+        this.terminal = terminal;
+    }
+
+    private String centrarTexto(String texto) {
+        int ancho = obtenerAnchoTerminal();
+        int padding = (ancho - texto.length()) / 2;
+        if (padding < 0) padding = 0;
+        return " ".repeat(padding) + texto;
+    }
+
+    private int obtenerAnchoTerminal() {
+        if (terminal != null) {
+            try {
+                int ancho = terminal.getWidth();
+                if (ancho > 0 && ancho < 10000) {
+                    return ancho;
+                }
+            } catch (Exception e) {
+            }
+        }
+        return 80;
     }
 
     public String leerTextoObligatorio(String etiqueta) {
         while (true) {
-            System.out.print(etiqueta + ": ");
+            System.out.print(centrarTexto(etiqueta + ": "));
             if (!scanner.hasNextLine()) {
                 continue;
             }
@@ -31,7 +58,7 @@ public class ValidadorEntrada {
             if (!texto.isEmpty()) {
                 return texto;
             }
-            System.out.println("Error: " + etiqueta + " no puede estar vacío.");
+            System.out.println(centrarTexto("Error: " + etiqueta + " no puede estar vacío."));
         }
     }
 
@@ -40,7 +67,7 @@ public class ValidadorEntrada {
             throw new IllegalArgumentException("El mínimo no puede ser mayor que el máximo");
         }
         while (true) {
-            System.out.print(etiqueta + " (" + min + " a " + max + "): ");
+            System.out.print(centrarTexto(etiqueta + " (" + min + " a " + max + "): "));
             if (!scanner.hasNextLine()) {
                 continue;
             }
@@ -50,15 +77,16 @@ public class ValidadorEntrada {
                 if (valor >= min && valor <= max) {
                     return valor;
                 }
-                System.out.println("Error: " + etiqueta + " debe estar entre " + min + " y " + max + ".");
+                System.out.println(centrarTexto("Error: " + etiqueta + " debe estar entre " + min + " y " + max + "."));
             } catch (NumberFormatException e) {
-                System.out.println("Error: " + etiqueta + " debe ser un número entero.");
+                System.out.println(centrarTexto("Error: " + etiqueta + " debe ser un número entero."));
             }
         }
     }
 
     public void esperarOpcionCero() {
         while (true) {
+            System.out.print(centrarTexto("0. Volver al menú principal: "));
             if (!scanner.hasNextLine()) {
                 continue;
             }
@@ -68,16 +96,16 @@ public class ValidadorEntrada {
                 if (valor == 0) {
                     return;
                 }
-                System.out.println("Error: ingrese 0 para volver al menú principal.");
+                System.out.println(centrarTexto("Error: ingrese 0 para volver al menú principal."));
             } catch (NumberFormatException e) {
-                System.out.println("Error: ingrese 0 para volver al menú principal.");
+                System.out.println(centrarTexto("Error: ingrese 0 para volver al menú principal."));
             }
         }
     }
 
     public Double leerDecimalWrapper(String etiqueta, double min) {
         while (true) {
-            System.out.print(etiqueta + " (mínimo " + min + "): ");
+            System.out.print(centrarTexto(etiqueta + " (mínimo " + min + "): "));
             if (!scanner.hasNextLine()) {
                 continue;
             }
@@ -87,9 +115,9 @@ public class ValidadorEntrada {
                 if (!valor.isNaN() && !valor.isInfinite() && valor >= min) {
                     return valor;
                 }
-                System.out.println("Error: " + etiqueta + " debe ser un número decimal válido igual o mayor a " + min + ".");
+                System.out.println(centrarTexto("Error: " + etiqueta + " debe ser un número decimal válido igual o mayor a " + min + "."));
             } catch (NumberFormatException e) {
-                System.out.println("Error: " + etiqueta + " debe ser un número decimal.");
+                System.out.println(centrarTexto("Error: " + etiqueta + " debe ser un número decimal."));
             }
         }
     }
@@ -100,13 +128,13 @@ public class ValidadorEntrada {
         }
         E[] valores = enumClass.getEnumConstants();
         while (true) {
-            System.out.print(etiqueta + " " + opcionesEnum(enumClass, valores) + ": ");
+            System.out.print(centrarTexto(etiqueta + " " + opcionesEnum(enumClass, valores) + ": "));
             if (!scanner.hasNextLine()) {
                 continue;
             }
             String texto = scanner.nextLine().trim();
             if (texto.isEmpty()) {
-                System.out.println("Error: " + etiqueta + " no puede estar vacío.");
+                System.out.println(centrarTexto("Error: " + etiqueta + " no puede estar vacío."));
                 continue;
             }
 
@@ -119,7 +147,7 @@ public class ValidadorEntrada {
                     return valor;
                 }
             }
-            System.out.println("Error: valor inválido para " + etiqueta + ". Opciones: " + opcionesEnum(enumClass, valores) + ".");
+            System.out.println(centrarTexto("Error: valor inválido para " + etiqueta + ". Opciones: " + opcionesEnum(enumClass, valores) + "."));
         }
     }
 
