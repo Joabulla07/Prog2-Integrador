@@ -16,6 +16,7 @@ import org.jline.terminal.TerminalBuilder;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Scanner;
 
 import concesionaria.model.ComparadoresVehiculo;
 
@@ -32,29 +33,25 @@ public class ConsolaApp {
      * Constructor que inicializa la aplicación de consola.
      *
      * @param servicio el servicio de concesionaria a utilizar
-     * @param entrada el validador de entrada para leer datos del usuario
-     * @throws IllegalArgumentException si servicio o entrada son null
-     * @throws RuntimeException si no se puede inicializar el terminal
+     * @param scanner el Scanner desde el cual se leerán los datos del usuario
+     * @throws IllegalArgumentException si servicio o scanner son null
      */
-    public ConsolaApp(ConcesionariaService servicio, ValidadorEntrada entrada) {
+    public ConsolaApp(ConcesionariaService servicio, Scanner scanner) {
         if (servicio == null) throw new IllegalArgumentException("El servicio no puede ser null");
-        if (entrada == null) throw new IllegalArgumentException("El validador no puede ser null");
+        if (scanner == null) throw new IllegalArgumentException("El Scanner no puede ser null");
         this.servicio = servicio;
-        
+
         TerminalUtil tempTerminalUtil;
-        ValidadorEntrada tempEntrada;
-        
+
         try {
             Terminal terminal = TerminalBuilder.builder().build();
             tempTerminalUtil = new TerminalUtil(terminal);
-            tempEntrada = new ValidadorEntrada(new java.util.Scanner(System.in), tempTerminalUtil);
         } catch (Exception e) {
             tempTerminalUtil = new TerminalUtil();
-            tempEntrada = new ValidadorEntrada(new java.util.Scanner(System.in), tempTerminalUtil);
         }
-        
+
         this.terminalUtil = tempTerminalUtil;
-        this.entrada = tempEntrada;
+        this.entrada = new ValidadorEntrada(scanner, this.terminalUtil);
     }
 
 
@@ -94,7 +91,6 @@ public class ConsolaApp {
                         salir = true;
                         TerminalUtil.limpiarPantalla();
                         System.out.println(terminalUtil.centrarTexto("Saliendo de la aplicación."));
-                        System.exit(0);
                         break;
                     default:
                         System.out.println(terminalUtil.centrarTexto("Opción fuera del rango disponible."));
