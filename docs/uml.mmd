@@ -1,43 +1,101 @@
 classDiagram
-    direction LR
+    direction TB
 
     class Main {
-        +main(args)
+        +main(args)$
     }
 
     class ConsolaApp {
         -ConcesionariaService servicio
         -ValidadorEntrada entrada
+        -TerminalUtil terminalUtil
+        +ConsolaApp(ConcesionariaService, Scanner)
         +iniciar()
+        -mostrarEntradaFinalizada(EntradaFinalizadaException)
+        -esperarVolverMenu()
+        -mostrarMenu()
+        -mostrarTitulo(String)
         -registrarAutomovil()
         -registrarCamioneta()
         -registrarMotocicleta()
-        -listar(List~Vehiculo~, String)
+        -filtrarPorTipo()
         -buscarPorCodigo()
+        -ordenarPorAnio()
+        -ordenarPorPrecio()
+        -ordenarPorMarcaModelo()
         -eliminarPorCodigo()
+        -listar(List~Vehiculo~, String)
     }
 
     class LauncherConsola {
-        +main(args)
+        +main(args)$
+        -abrirTerminalUnix()$ ProcessBuilder
+        -comandoDisponible(String)$ boolean
     }
 
     class ValidadorEntrada {
         -Scanner scanner
+        -TerminalUtil terminalUtil
+        +ValidadorEntrada()
+        +ValidadorEntrada(Scanner)
+        +ValidadorEntrada(Scanner, TerminalUtil)
+        -verificarEntradaDisponible(String)
         +leerTextoObligatorio(String) String
         +leerEnteroWrapper(String, int, int) Integer
+        +esperarOpcionCero()
         +leerDecimalWrapper(String, double) Double
         +leerEnum(String, Class~E~) E
+        -opcionesEnum(Class~E~, E valores)$ String
+        -obtenerDescripcion(Enum) String
+    }
+
+    class TerminalUtil {
+        -Terminal terminal
+        +TerminalUtil()
+        +TerminalUtil(Terminal)
+        +centrarTexto(String) String
+        +centrarVerticalmente(int)
+        +obtenerAnchoTerminal() int
+        +obtenerAlturaTerminal() int
+        +limpiarPantalla()$
     }
 
     class ConcesionariaService {
         -VehiculoRepository repositorio
+        -Set~String~ SIGLAS$
+        -List~Columna~ COLUMNAS_TABLA$
+        +ConcesionariaService(VehiculoRepository)
         +registrarVehiculo(Vehiculo) Vehiculo
+        +generarReporteDirectivos() String
+        +formatearTablaVehiculos(List~Vehiculo~, int) String
         +listarTodos() List~Vehiculo~
         +listarPorEstado(EstadoUnidad) List~Vehiculo~
         +listarPorTipo(TipoVehiculo) List~Vehiculo~
         +obtenerVehiculoPorCodigo(String) Vehiculo
         +eliminarVehiculo(String) boolean
-        +generarReporteDirectivos() String
+        -normalizarTextosVehiculo(Vehiculo)
+        -normalizarTexto(String) String
+        -esSigla(String)$ boolean
+        -contieneDigito(String)$ boolean
+        -validarVehiculo(Vehiculo)
+        -valorOGuion(String)$ String
+        -obtenerDetalle(Vehiculo)$ String
+        -formatearLinea(List~Columna~, Function)$ String
+        -formatearSeparador(List~Columna~)$ String
+        -anchoTotal(List~Columna~)$ int
+        -ajustar(String, int)$ String
+        -validarObligatorio(String, String)
+        -validarLongitud(String, String, int)
+    }
+
+    class Columna {
+        <<inner class>>
+        -String encabezado
+        -int ancho
+        -Function~Vehiculo,String~ valor
+        -int prioridadRemocion
+        -Columna(String, int, Function, int)
+        -getEncabezado() String
     }
 
     class RepositorioGenerico~T,ID~ {
@@ -54,12 +112,28 @@ classDiagram
         +listarPorTipo(TipoVehiculo) List~Vehiculo~
     }
 
+    class Identificable {
+        <<interface>>
+        +getCodigoInventario() String
+    }
+
+    class EvaluatableComercial {
+        <<interface>>
+        +obtenerCategoriaComercial() String
+        +esAptoEntregaInmediata() boolean
+    }
+
     class MssqlVehiculoRepository {
         -Sql2o sql2o
+        +MssqlVehiculoRepository()
+        +MssqlVehiculoRepository(Sql2o)
         +guardar(Vehiculo) Vehiculo
         +buscarPorCodigo(String) Vehiculo
         +listarTodos() List~Vehiculo~
         +eliminarPorCodigo(String) boolean
+        +listarPorEstado(EstadoUnidad) List~Vehiculo~
+        +listarPorTipo(TipoVehiculo) List~Vehiculo~
+        -mapearVehiculo(ResultSet) Vehiculo
     }
 
     class Vehiculo {
@@ -72,24 +146,59 @@ classDiagram
         -EstadoUnidad estado
         -Integer kilometraje
         -Double precioLista
+        +Vehiculo()
+        +Vehiculo(String, String, Integer, String, EstadoUnidad, Integer, Double)
+        +asignarCodigoInventario(String)
+        +getPrecioFormateado() String
         +obtenerTipoVehiculo()* TipoVehiculo
         +obtenerTipoEstructura()* String
         +obtenerFichaDirectiva()* String
         +obtenerCategoriaComercial() String
         +esAptoEntregaInmediata() boolean
         +compareTo(Vehiculo) int
+        +equals(Object) boolean
+        +hashCode() int
+        #completarToString(String) String
+        +toString() String
+        -representacionBase() String
+        -normalizarCodigo(String)$ String
     }
 
     class Automovil {
         -String carroceria
+        +Automovil()
+        +Automovil(String, String, Integer, String, EstadoUnidad, Integer, Double, String)
+        +obtenerTipoVehiculo() TipoVehiculo
+        +obtenerTipoEstructura() String
+        +obtenerFichaDirectiva() String
+        +toString() String
     }
 
     class Camioneta {
         -String carroceria
+        +Camioneta()
+        +Camioneta(String, String, Integer, String, EstadoUnidad, Integer, Double, String)
+        +obtenerTipoVehiculo() TipoVehiculo
+        +obtenerTipoEstructura() String
+        +obtenerFichaDirectiva() String
+        +toString() String
     }
 
     class Motocicleta {
         -String tipoMotocicleta
+        +Motocicleta()
+        +Motocicleta(String, String, Integer, String, EstadoUnidad, Integer, Double, String)
+        +obtenerTipoVehiculo() TipoVehiculo
+        +obtenerTipoEstructura() String
+        +obtenerFichaDirectiva() String
+        +toString() String
+    }
+
+    class ComparadoresVehiculo {
+        <<utility>>
+        +Comparator~Vehiculo~ POR_PRECIO_ASC$
+        +Comparator~Vehiculo~ POR_ANIO_ASC$
+        +Comparator~Vehiculo~ POR_MARCA_MODELO$
     }
 
     class TipoVehiculo {
@@ -97,38 +206,134 @@ classDiagram
         AUTOMOVIL
         CAMIONETA
         MOTOCICLETA
-        +fromString(String) TipoVehiculo
+        -String descripcion
+        +getDescripcion() String
+        +fromString(String)$ TipoVehiculo
     }
 
     class EstadoUnidad {
         <<enum>>
         CERO_KM
         USADO
-        +fromString(String) EstadoUnidad
+        -String descripcion
+        +getDescripcion() String
+        +fromString(String)$ EstadoUnidad
     }
 
-    class Identificable {
+    class Config {
+        -Dotenv dotenv$
+        +String URL$
+        +String USER$
+        +String PASS$
+        -require(String)$ String
+    }
+
+    class ConexionDB {
+        +Sql2o sql2o$
+    }
+
+    class DatoVehiculoInvalidoException {
+        <<exception>>
+        -String campoInvalido
+        -String valorInvalido
+        +DatoVehiculoInvalidoException(String, String, String)
+        +DatoVehiculoInvalidoException(String, String, String, Throwable)
+        +getCampoInvalido() String
+        +getValorInvalido() String
+    }
+
+    class VehiculoNoEncontradoException {
+        <<exception>>
+        -String codigoBuscado
+        +VehiculoNoEncontradoException(String, String)
+        +VehiculoNoEncontradoException(String, String, Throwable)
+        +getCodigoBuscado() String
+    }
+
+    class PersistenciaException {
+        <<exception>>
+        -Throwable causa
+        -String operacion
+        +PersistenciaException(String, Throwable)
+        +PersistenciaException(String, String, Throwable)
+        +getCausa() Throwable
+        +getOperacion() String
+    }
+
+    class EntradaFinalizadaException {
+        <<exception>>
+        +EntradaFinalizadaException(String)
+    }
+
+    class Serializable {
         <<interface>>
-        +getCodigoInventario() String
     }
 
-    class EvaluatableComercial {
+    class Comparable {
         <<interface>>
-        +obtenerCategoriaComercial() String
-        +esAptoEntregaInmediata() boolean
     }
 
-    Main --> ConsolaApp
-    LauncherConsola --> Main
+    class Exception {
+        <<external>>
+    }
+
+    class RuntimeException {
+        <<external>>
+    }
+
+    class Sql2o {
+        <<external>>
+    }
+
+    class Terminal {
+        <<external>>
+    }
+
+    class Dotenv {
+        <<external>>
+    }
+
+    Main ..> ConsolaApp
+    Main ..> ConcesionariaService
+    Main ..> MssqlVehiculoRepository
+    LauncherConsola ..> Main
+
     ConsolaApp --> ConcesionariaService
     ConsolaApp --> ValidadorEntrada
+    ConsolaApp --> TerminalUtil
+    ConsolaApp ..> ComparadoresVehiculo
+    ConsolaApp ..> EntradaFinalizadaException
+
+    ValidadorEntrada --> TerminalUtil
+    ValidadorEntrada ..> EntradaFinalizadaException
+
     ConcesionariaService --> VehiculoRepository
-    VehiculoRepository --|> RepositorioGenerico
+    ConcesionariaService ..> Vehiculo
+    ConcesionariaService ..> Columna
+    ConcesionariaService ..> DatoVehiculoInvalidoException
+    ConcesionariaService ..> VehiculoNoEncontradoException
+
+    VehiculoRepository --|> RepositorioGenerico~T,ID~
     MssqlVehiculoRepository ..|> VehiculoRepository
+    MssqlVehiculoRepository --> ConexionDB
+    MssqlVehiculoRepository ..> Vehiculo
+    MssqlVehiculoRepository ..> PersistenciaException
+
+    ConexionDB --> Config
+
     Vehiculo ..|> Identificable
     Vehiculo ..|> EvaluatableComercial
+    Vehiculo ..|> Serializable
+    Vehiculo ..|> Comparable
     Vehiculo --> TipoVehiculo
     Vehiculo --> EstadoUnidad
+    ComparadoresVehiculo ..> Vehiculo
+
     Vehiculo <|-- Automovil
     Vehiculo <|-- Camioneta
     Vehiculo <|-- Motocicleta
+
+    DatoVehiculoInvalidoException --|> Exception
+    VehiculoNoEncontradoException --|> Exception
+    PersistenciaException --|> RuntimeException
+    EntradaFinalizadaException --|> RuntimeException
