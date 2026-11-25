@@ -6,6 +6,7 @@ import concesionaria.model.enums.EstadoUnidad;
 import concesionaria.model.enums.TipoVehiculo;
 
 import java.io.Serializable;
+import java.text.NumberFormat;
 import java.util.Locale;
 import java.util.Objects;
 
@@ -215,6 +216,23 @@ public abstract class Vehiculo implements Identificable, EvaluatableComercial, S
     }
 
     /**
+     * Obtiene el precio de lista formateado como moneda argentina.
+     * Evita la notación científica que produce la concatenación directa de un Double
+     * para valores mayores o iguales a diez millones.
+     *
+     * @return precio formateado (ej. "$28.500.000,00") o "-" si no está definido
+     */
+    public String getPrecioFormateado() {
+        if (precioLista == null || !Double.isFinite(precioLista)) {
+            return "-";
+        }
+        NumberFormat formato = NumberFormat.getNumberInstance(Locale.forLanguageTag("es-AR"));
+        formato.setMinimumFractionDigits(2);
+        formato.setMaximumFractionDigits(2);
+        return "$" + formato.format(precioLista);
+    }
+
+    /**
      * Obtiene el tipo de vehículo específico de esta instancia.
      * Cada subclase debe implementar este método para devolver su TipoVehiculo correspondiente.
      *
@@ -350,6 +368,21 @@ public abstract class Vehiculo implements Identificable, EvaluatableComercial, S
     }
 
     /**
+     * Completa la representación de la superclase con un detalle específico de la subclase.
+     * Inserta el detalle antes del corchete de cierre para no duplicarlo.
+     *
+     * @param detalle detalle específico de la subclase (ej. "carrocería=Sedán")
+     * @return representación completa con un único corchete de cierre
+     */
+    protected String completarToString(String detalle) {
+        String base = representacionBase();
+        if (detalle == null || detalle.isEmpty()) {
+            return base;
+        }
+        return base.substring(0, base.length() - 1) + ", " + detalle + "]";
+    }
+
+    /**
      * Devuelve una representación legible del vehículo para debugging.
      * Incluye tipo de vehículo, marca, modelo, año y código de inventario.
      *
@@ -357,6 +390,17 @@ public abstract class Vehiculo implements Identificable, EvaluatableComercial, S
      */
     @Override
     public String toString() {
+        return representacionBase();
+    }
+
+    /**
+     * Construye la representación base sin incluir los atributos de la subclase.
+     * Se usa desde {@link #completarToString(String)} para evitar la recursión
+     * que produciría llamar a {@code toString()} desde una subclase.
+     *
+     * @return representación base del vehículo
+     */
+    private String representacionBase() {
         String tipo = obtenerTipoVehiculo() != null ? obtenerTipoVehiculo().getDescripcion() : "[sin tipo]";
         String marcaVal = marca != null ? marca : "[sin marca]";
         String modeloVal = modelo != null ? modelo : "[sin modelo]";

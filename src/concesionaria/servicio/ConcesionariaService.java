@@ -10,14 +10,44 @@ import concesionaria.model.enums.EstadoUnidad;
 import concesionaria.model.enums.TipoVehiculo;
 import concesionaria.interfaces.VehiculoRepository;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.Year;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
+import java.util.function.Function;
 
 /**
  * Coordina las operaciones de negocio de la concesionaria.
  */
 public class ConcesionariaService {
+
+    private static final int MAX_MARCA = 60;
+    private static final int MAX_MODELO = 60;
+    private static final int MAX_COLOR = 40;
+    private static final int MAX_DETALLE = 60;
+    private static final BigDecimal PRECIO_MAXIMO = new BigDecimal("999999999999.99");
+
+    private static final Set<String> SIGLAS = Set.of(
+            "SUV", "GTI", "GR-S", "MT-03", "HRC", "BMW", "GTR", "4X4", "CBR", "AMG");
+
+    private static final List<Columna> COLUMNAS_TABLA = List.of(
+            new Columna("Código", 11, v -> valorOGuion(v.getCodigoInventario()), 0),
+            new Columna("Tipo", 11, v -> v.obtenerTipoVehiculo() != null
+                    ? v.obtenerTipoVehiculo().getDescripcion() : "-", 3),
+            new Columna("Marca", 12, v -> valorOGuion(v.getMarca()), 0),
+            new Columna("Modelo", 14, v -> valorOGuion(v.getModelo()), 0),
+            new Columna("Año", 4, v -> v.getAnio() != null ? v.getAnio().toString() : "-", 0),
+            new Columna("Color", 10, v -> valorOGuion(v.getColor()), 1),
+            new Columna("Estado", 7, v -> v.getEstado() != null ? v.getEstado().getDescripcion() : "-", 4),
+            new Columna("Km", 8, v -> v.getKilometraje() != null ? v.getKilometraje().toString() : "-", 5),
+            new Columna("Precio", 14, Vehiculo::getPrecioFormateado, 0),
+            new Columna("Detalle", 16, v -> valorOGuion(obtenerDetalle(v)), 7),
+            new Columna("Categoría", 18, Vehiculo::obtenerCategoriaComercial, 2),
+            new Columna("Entrega", 7, v -> v.esAptoEntregaInmediata() ? "Sí" : "No", 6)
+    );
 
     private final VehiculoRepository repositorio;
 
@@ -86,40 +116,59 @@ public class ConcesionariaService {
         reporte.append("USADO            | ").append(usados).append("\n\n");
 
         reporte.append("Vehículos\n");
-        reporte.append("%-12s | %-12s | %-16s | %-20s | %-4s | %-16s | %-8s | %-10s | %-14s | %-22s | %-20s | %-8s%n".formatted(
-                "Código", "Tipo", "Marca", "Modelo", "Año", "Color", "Estado", "Km", "Precio", "Detalle", "Categoría", "Entrega"));
-        reporte.append("-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n");
+        reporte.append(formatearTablaVehiculos(vehiculos, Integer.MAX_VALUE));
+        reporte.append("\n");
+        return reporte.toString();
+    }
+
+    /**
+     * Formatea una lista de vehículos como una tabla de ancho fijo.
+     * Todas las líneas tienen exactamente el mismo ancho, los valores largos se
+     * recortan y, si el ancho máximo no alcanza, se quitan columnas opcionales
+     * (primero Color, luego Categoría, Tipo, Estado, Km, Entrega y Detalle).
+     *
+     * @param vehiculos lista de vehículos a mostrar
+     * @param anchoMaximo ancho máximo disponible en caracteres
+     * @return tabla formateada sin salto de línea final
+     * @throws IllegalArgumentException si la lista es null
+     */
+    public String formatearTablaVehiculos(List<Vehiculo> vehiculos, int anchoMaximo) {
+        if (vehiculos == null) {
+            throw new IllegalArgumentException("La lista de vehículos no puede ser null");
+        }
+
+        List<Columna> columnas = new ArrayList<>(COLUMNAS_TABLA);
+        while (anchoTotal(columnas) > anchoMaximo) {
+            Columna aQuitar = null;
+            for (Columna columna : columnas) {
+                if (columna.prioridadRemocion > 0
+                        && (aQuitar == null || columna.prioridadRemocion < aQuitar.prioridadRemocion)) {
+                    aQuitar = columna;
+                }
+            }
+            if (aQuitar == null) {
+                break;
+            }
+            columnas.remove(aQuitar);
+        }
+
+        StringBuilder tabla = new StringBuilder();
+        tabla.append(formatearLinea(columnas, Columna::getEncabezado)).append('\n');
+        tabla.append(formatearSeparador(columnas)).append('\n');
 
         if (vehiculos.isEmpty()) {
-            reporte.append("No hay vehículos registrados.\n");
-            return reporte.toString();
+            tabla.append("No hay vehículos registrados.");
+            return tabla.toString();
         }
 
-        for (Vehiculo vehiculo : vehiculos) {
-            String detalle = "";
-            if (vehiculo instanceof Automovil) {
-                detalle = ((Automovil) vehiculo).getCarroceria();
-            } else if (vehiculo instanceof Camioneta) {
-                detalle = ((Camioneta) vehiculo).getCarroceria();
-            } else if (vehiculo instanceof Motocicleta) {
-                detalle = ((Motocicleta) vehiculo).getTipoMotocicleta();
+        for (int i = 0; i < vehiculos.size(); i++) {
+            if (i > 0) {
+                tabla.append('\n');
             }
-
-            reporte.append("%-12s | %-12s | %-16s | %-20s | %-4s | %-16s | %-8s | %-10s | %-14s | %-22s | %-20s | %-8s%n".formatted(
-                    valorOGuion(vehiculo.getCodigoInventario()),
-                    vehiculo.obtenerTipoVehiculo() != null ? vehiculo.obtenerTipoVehiculo().getDescripcion() : "-",
-                    valorOGuion(vehiculo.getMarca()),
-                    valorOGuion(vehiculo.getModelo()),
-                    vehiculo.getAnio() != null ? vehiculo.getAnio().toString() : "-",
-                    valorOGuion(vehiculo.getColor()),
-                    vehiculo.getEstado() != null ? vehiculo.getEstado().getDescripcion() : "-",
-                    vehiculo.getKilometraje() != null ? vehiculo.getKilometraje().toString() : "-",
-                    vehiculo.getPrecioLista() != null ? "$" + vehiculo.getPrecioLista() : "-",
-                    valorOGuion(detalle),
-                    vehiculo.obtenerCategoriaComercial(),
-                    vehiculo.esAptoEntregaInmediata() ? "Sí" : "No"));
+            Vehiculo vehiculo = vehiculos.get(i);
+            tabla.append(formatearLinea(columnas, columna -> columna.valor.apply(vehiculo)));
         }
-        return reporte.toString();
+        return tabla.toString();
     }
 
     /**
@@ -217,7 +266,8 @@ public class ConcesionariaService {
     }
 
     /**
-     * Normaliza un texto aplicando capitalización de título y manteniendo siglas en mayúsculas.
+     * Normaliza un texto aplicando capitalización de título, manteniendo siglas
+     * en mayúsculas y preservando tokens con dígitos (por ejemplo "i20" o "CX-5").
      *
      * @param texto el texto a normalizar
      * @return el texto normalizado
@@ -243,6 +293,8 @@ public class ConcesionariaService {
             String palabra = palabras[i];
             if (esSigla(palabra)) {
                 normalizado.append(palabra.toUpperCase(Locale.ROOT));
+            } else if (contieneDigito(palabra)) {
+                normalizado.append(palabra);
             } else {
                 String minuscula = palabra.toLowerCase(Locale.ROOT);
                 normalizado.append(Character.toUpperCase(minuscula.charAt(0)))
@@ -258,16 +310,24 @@ public class ConcesionariaService {
      * @param palabra la palabra a evaluar
      * @return true si es una sigla conocida, false en caso contrario
      */
-    private boolean esSigla(String palabra) {
-        String limpia = palabra.toUpperCase(Locale.ROOT);
-        return limpia.equals("SUV")
-                || limpia.equals("GTI")
-                || limpia.equals("GR-S")
-                || limpia.equals("MT-03")
-                || limpia.equals("HRC")
-                || limpia.equals("BMW")
-                || limpia.equals("GTR")
-                || limpia.equals("4X4");
+    private static boolean esSigla(String palabra) {
+        return SIGLAS.contains(palabra.toUpperCase(Locale.ROOT));
+    }
+
+    /**
+     * Determina si una palabra contiene al menos un dígito.
+     * Los tokens con dígitos (i20, CX-5, MT-03) se preservan tal como los ingresó el usuario.
+     *
+     * @param palabra la palabra a evaluar
+     * @return true si contiene un dígito
+     */
+    private static boolean contieneDigito(String palabra) {
+        for (int i = 0; i < palabra.length(); i++) {
+            if (Character.isDigit(palabra.charAt(i))) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -285,8 +345,11 @@ public class ConcesionariaService {
         }
 
         validarObligatorio("marca", vehiculo.getMarca());
+        validarLongitud("marca", vehiculo.getMarca(), MAX_MARCA);
         validarObligatorio("modelo", vehiculo.getModelo());
+        validarLongitud("modelo", vehiculo.getModelo(), MAX_MODELO);
         validarObligatorio("color", vehiculo.getColor());
+        validarLongitud("color", vehiculo.getColor(), MAX_COLOR);
 
         TipoVehiculo tipo = vehiculo.obtenerTipoVehiculo();
         if (tipo == null) {
@@ -294,11 +357,17 @@ public class ConcesionariaService {
         }
 
         if (vehiculo instanceof Automovil) {
-            validarObligatorio("carroceria", ((Automovil) vehiculo).getCarroceria());
+            String carroceria = ((Automovil) vehiculo).getCarroceria();
+            validarObligatorio("carroceria", carroceria);
+            validarLongitud("carroceria", carroceria, MAX_DETALLE);
         } else if (vehiculo instanceof Camioneta) {
-            validarObligatorio("carroceria", ((Camioneta) vehiculo).getCarroceria());
+            String carroceria = ((Camioneta) vehiculo).getCarroceria();
+            validarObligatorio("carroceria", carroceria);
+            validarLongitud("carroceria", carroceria, MAX_DETALLE);
         } else if (vehiculo instanceof Motocicleta) {
-            validarObligatorio("tipoMotocicleta", ((Motocicleta) vehiculo).getTipoMotocicleta());
+            String tipoMotocicleta = ((Motocicleta) vehiculo).getTipoMotocicleta();
+            validarObligatorio("tipoMotocicleta", tipoMotocicleta);
+            validarLongitud("tipoMotocicleta", tipoMotocicleta, MAX_DETALLE);
         }
 
         EstadoUnidad estado = vehiculo.getEstado();
@@ -314,8 +383,18 @@ public class ConcesionariaService {
         }
 
         Double precio = vehiculo.getPrecioLista();
-        if (precio == null || precio <= 0) {
-            throw new DatoVehiculoInvalidoException("El precio debe ser mayor a cero", "precioLista", String.valueOf(precio));
+        if (precio == null || !Double.isFinite(precio) || precio <= 0) {
+            throw new DatoVehiculoInvalidoException("El precio debe ser un número finito mayor a cero",
+                    "precioLista", String.valueOf(precio));
+        }
+        BigDecimal precioRedondeado = BigDecimal.valueOf(precio).setScale(2, RoundingMode.HALF_UP);
+        if (precioRedondeado.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new DatoVehiculoInvalidoException("El precio debe ser mayor a cero",
+                    "precioLista", String.valueOf(precio));
+        }
+        if (precioRedondeado.compareTo(PRECIO_MAXIMO) > 0) {
+            throw new DatoVehiculoInvalidoException("El precio no puede superar " + PRECIO_MAXIMO,
+                    "precioLista", String.valueOf(precio));
         }
 
         Integer kilometraje = vehiculo.getKilometraje();
@@ -328,17 +407,104 @@ public class ConcesionariaService {
         if (estado == EstadoUnidad.USADO && kilometraje <= 0) {
             throw new DatoVehiculoInvalidoException("Un vehículo USADO debe tener kilometraje mayor a cero", "kilometraje", String.valueOf(kilometraje));
         }
+
+        vehiculo.setPrecioLista(precioRedondeado.doubleValue());
     }
 
     /**
      * Retorna un guion si el valor es null o vacío, sino retorna el valor.
-     * Utilizado para formatear el reporte directivo.
+     * Utilizado para formatear la tabla de vehículos.
      *
      * @param valor el valor a evaluar
      * @return el valor o "-" si es null/vacío
      */
-    private String valorOGuion(String valor) {
+    private static String valorOGuion(String valor) {
         return valor == null || valor.trim().isEmpty() ? "-" : valor;
+    }
+
+    /**
+     * Obtiene el detalle específico de la subclase (carrocería o tipo de motocicleta).
+     *
+     * @param vehiculo vehículo a inspeccionar
+     * @return detalle específico o cadena vacía
+     */
+    private static String obtenerDetalle(Vehiculo vehiculo) {
+        if (vehiculo instanceof Automovil) {
+            return ((Automovil) vehiculo).getCarroceria();
+        }
+        if (vehiculo instanceof Camioneta) {
+            return ((Camioneta) vehiculo).getCarroceria();
+        }
+        if (vehiculo instanceof Motocicleta) {
+            return ((Motocicleta) vehiculo).getTipoMotocicleta();
+        }
+        return "";
+    }
+
+    /**
+     * Formatea una línea de tabla con todas las columnas activas.
+     *
+     * @param columnas columnas a incluir
+     * @param valor función que obtiene el valor de cada columna
+     * @return línea con ancho fijo
+     */
+    private static String formatearLinea(List<Columna> columnas, Function<Columna, String> valor) {
+        StringBuilder linea = new StringBuilder();
+        for (int i = 0; i < columnas.size(); i++) {
+            if (i > 0) {
+                linea.append(" | ");
+            }
+            Columna columna = columnas.get(i);
+            linea.append(ajustar(valor.apply(columna), columna.ancho));
+        }
+        return linea.toString();
+    }
+
+    /**
+     * Genera una línea separadora que respeta el ancho exacto de cada columna.
+     *
+     * @param columnas columnas activas
+     * @return separador de guiones y cruces
+     */
+    private static String formatearSeparador(List<Columna> columnas) {
+        StringBuilder separador = new StringBuilder();
+        for (int i = 0; i < columnas.size(); i++) {
+            if (i > 0) {
+                separador.append("-+-");
+            }
+            separador.append("-".repeat(columnas.get(i).ancho));
+        }
+        return separador.toString();
+    }
+
+    /**
+     * Calcula el ancho total de una tabla, incluyendo los separadores " | ".
+     *
+     * @param columnas columnas activas
+     * @return ancho total en caracteres
+     */
+    private static int anchoTotal(List<Columna> columnas) {
+        int total = 0;
+        for (Columna columna : columnas) {
+            total += columna.ancho;
+        }
+        return total + Math.max(0, columnas.size() - 1) * 3;
+    }
+
+    /**
+     * Ajusta un valor al ancho de la columna, recortando con puntos suspensivos
+     * si es demasiado largo y rellenando con espacios si es más corto.
+     *
+     * @param valor valor a ajustar
+     * @param ancho ancho de la columna
+     * @return texto de exactamente {@code ancho} caracteres
+     */
+    private static String ajustar(String valor, int ancho) {
+        String texto = valor == null || valor.trim().isEmpty() ? "-" : valor.trim();
+        if (texto.length() > ancho) {
+            texto = ancho > 1 ? texto.substring(0, ancho - 1) + "…" : texto.substring(0, ancho);
+        }
+        return texto + " ".repeat(Math.max(0, ancho - texto.length()));
     }
 
     /**
@@ -351,6 +517,44 @@ public class ConcesionariaService {
     private void validarObligatorio(String campo, String valor) throws DatoVehiculoInvalidoException {
         if (valor == null || valor.trim().isEmpty()) {
             throw new DatoVehiculoInvalidoException("El campo " + campo + " no puede estar vacío", campo, String.valueOf(valor));
+        }
+    }
+
+    /**
+     * Valida que un campo de texto no supere la longitud máxima permitida por el esquema.
+     *
+     * @param campo el nombre del campo para el mensaje de error
+     * @param valor el valor a validar
+     * @param maximo longitud máxima permitida
+     * @throws DatoVehiculoInvalidoException si el valor supera la longitud máxima
+     */
+    private void validarLongitud(String campo, String valor, int maximo) throws DatoVehiculoInvalidoException {
+        if (valor != null && valor.length() > maximo) {
+            throw new DatoVehiculoInvalidoException(
+                    "El campo " + campo + " no puede superar " + maximo + " caracteres",
+                    campo, valor);
+        }
+    }
+
+    /**
+     * Columna de la tabla de vehículos.
+     */
+    private static final class Columna {
+
+        private final String encabezado;
+        private final int ancho;
+        private final Function<Vehiculo, String> valor;
+        private final int prioridadRemocion;
+
+        private Columna(String encabezado, int ancho, Function<Vehiculo, String> valor, int prioridadRemocion) {
+            this.encabezado = encabezado;
+            this.ancho = ancho;
+            this.valor = valor;
+            this.prioridadRemocion = prioridadRemocion;
+        }
+
+        private String getEncabezado() {
+            return encabezado;
         }
     }
 }

@@ -95,7 +95,7 @@ public class Motocicleta extends Vehiculo {
         ficha.append(getModelo() != null ? getModelo() : "[sin modelo]").append(" ");
         ficha.append(getAnio() != null ? getAnio() : "[sin año]");
         ficha.append(" | Estado: ").append(getEstado() != null ? getEstado().getDescripcion() : "[sin estado]");
-        ficha.append(" | Precio: $").append(getPrecioLista() != null ? getPrecioLista() : "[sin precio]");
+        ficha.append(" | Precio: ").append(getPrecioLista() != null ? getPrecioFormateado() : "[sin precio]");
         ficha.append(" | Código: ").append(getCodigoInventario() != null ? getCodigoInventario() : "[sin código]");
         ficha.append(" | Tipo: ").append(tipoMotocicleta != null ? tipoMotocicleta : "[sin especificar]");
         return ficha.toString();
@@ -110,6 +110,6 @@ public class Motocicleta extends Vehiculo {
     @Override
     public String toString() {
         String tipoVal = tipoMotocicleta != null ? tipoMotocicleta : "[sin tipo]";
-        return super.toString() + ", tipo=" + tipoVal + "]";
+        return completarToString("tipo=" + tipoVal);
     }
 }

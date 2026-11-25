@@ -14,6 +14,8 @@ import org.sql2o.ResultSetHandler;
 import org.sql2o.Sql2o;
 import org.sql2o.Sql2oException;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -37,6 +39,9 @@ public class MssqlVehiculoRepository implements VehiculoRepository {
      * @param sql2o la instancia de Sql2o para conectar a la base de datos
      */
     public MssqlVehiculoRepository(Sql2o sql2o) {
+        if (sql2o == null) {
+            throw new IllegalArgumentException("La instancia de Sql2o no puede ser null");
+        }
         this.sql2o = sql2o;
     }
 
@@ -56,12 +61,18 @@ public class MssqlVehiculoRepository implements VehiculoRepository {
      */
     @Override
     public Vehiculo guardar(Vehiculo vehiculo) {
+        if (vehiculo == null) {
+            throw new IllegalArgumentException("El vehículo no puede ser null");
+        }
+        if (vehiculo.getCodigoInventario() != null) {
+            throw new IllegalArgumentException("El vehículo ya tiene código de inventario");
+        }
+
         String insertSql = "INSERT INTO Vehiculos (tipo_vehiculo, marca, modelo, anio, color, estado_unidad, kilometraje, precio_lista, carroceria, tipo_motocicleta) " +
+                           "OUTPUT INSERTED.codigo_inventario " +
                            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
-        try (java.sql.Connection con = sql2o.open().getJdbcConnection();
-             PreparedStatement ps = con.prepareStatement(insertSql, PreparedStatement.RETURN_GENERATED_KEYS)) {
-
+        try (Connection con = sql2o.beginTransaction()) {
             String tipoVehiculo = vehiculo.obtenerTipoVehiculo().name();
             String carroceria = null;
             String tipoMotocicleta = null;
@@ -74,41 +85,41 @@ public class MssqlVehiculoRepository implements VehiculoRepository {
                 tipoMotocicleta = ((Motocicleta) vehiculo).getTipoMotocicleta();
             }
 
-            ps.setString(1, tipoVehiculo);
-            ps.setString(2, vehiculo.getMarca());
-            ps.setString(3, vehiculo.getModelo());
-            ps.setInt(4, vehiculo.getAnio());
-            ps.setString(5, vehiculo.getColor());
-            ps.setString(6, vehiculo.getEstado().name());
-            ps.setInt(7, vehiculo.getKilometraje());
-            ps.setDouble(8, vehiculo.getPrecioLista());
-            ps.setString(9, carroceria);
-            ps.setString(10, tipoMotocicleta);
+            try (PreparedStatement ps = con.getJdbcConnection().prepareStatement(insertSql)) {
+                ps.setString(1, tipoVehiculo);
+                ps.setString(2, vehiculo.getMarca());
+                ps.setString(3, vehiculo.getModelo());
+                ps.setInt(4, vehiculo.getAnio());
+                ps.setString(5, vehiculo.getColor());
+                ps.setString(6, vehiculo.getEstado().name());
+                ps.setInt(7, vehiculo.getKilometraje());
+                ps.setBigDecimal(8, BigDecimal.valueOf(vehiculo.getPrecioLista())
+                        .setScale(2, RoundingMode.HALF_UP));
+                ps.setString(9, carroceria);
+                ps.setString(10, tipoMotocicleta);
 
-            int filas = ps.executeUpdate();
-
-            if (filas > 0) {
-                try (ResultSet rsKeys = ps.getGeneratedKeys()) {
-                    if (rsKeys.next()) {
-                        int idVehiculo = rsKeys.getInt(1);
-                        String selectSql = "SELECT codigo_inventario FROM Vehiculos WHERE id_vehiculo = ?";
-                        try (PreparedStatement psSelect = con.prepareStatement(selectSql)) {
-                            psSelect.setInt(1, idVehiculo);
-                            try (ResultSet rs = psSelect.executeQuery()) {
-                                if (rs.next()) {
-                                    String codigoGenerado = rs.getString("codigo_inventario");
-                                    vehiculo.asignarCodigoInventario(codigoGenerado);
-                                }
-                            }
-                        }
+                String codigoGenerado;
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (!rs.next()) {
+                        throw new PersistenciaException(
+                                "No se pudo recuperar el código de inventario generado",
+                                "guardar", null);
                     }
+                    codigoGenerado = rs.getString(1);
                 }
+
+                if (codigoGenerado == null || codigoGenerado.trim().isEmpty()) {
+                    throw new PersistenciaException(
+                            "La base de datos devolvió un código de inventario vacío",
+                            "guardar", null);
+                }
+
+                con.commit();
+                vehiculo.asignarCodigoInventario(codigoGenerado);
+                return vehiculo;
             }
-
-            return vehiculo;
-
         } catch (SQLException e) {
-            throw new PersistenciaException("Error al guardar vehículo en base de datos", e);
+            throw new PersistenciaException("Error al guardar vehículo en base de datos", "guardar", e);
         }
     }
 

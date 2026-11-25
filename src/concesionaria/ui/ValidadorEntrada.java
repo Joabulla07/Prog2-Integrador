@@ -1,5 +1,7 @@
 package concesionaria.ui;
 
+import concesionaria.exception.EntradaFinalizadaException;
+
 import java.lang.reflect.Method;
 import java.util.Scanner;
 
@@ -42,6 +44,20 @@ public class ValidadorEntrada {
         this.terminalUtil = terminalUtil != null ? terminalUtil : new TerminalUtil();
     }
 
+    /**
+     * Verifica que quede entrada disponible antes de leer.
+     * En EOF, {@code hasNextLine()} devuelve {@code false} para siempre; continuar
+     * el bucle en ese estado provoca un giro infinito al 100% de CPU.
+     *
+     * @param etiqueta contexto de la lectura para el mensaje de error
+     * @throws EntradaFinalizadaException si no queda entrada por leer
+     */
+    private void verificarEntradaDisponible(String etiqueta) {
+        if (!scanner.hasNextLine()) {
+            throw new EntradaFinalizadaException("Entrada finalizada (EOF) mientras se leía " + etiqueta);
+        }
+    }
+
 
     /**
      * Lee un texto no vacío del usuario.
@@ -53,9 +69,7 @@ public class ValidadorEntrada {
     public String leerTextoObligatorio(String etiqueta) {
         while (true) {
             System.out.print(terminalUtil.centrarTexto(etiqueta + ": "));
-            if (!scanner.hasNextLine()) {
-                continue;
-            }
+            verificarEntradaDisponible(etiqueta);
             String texto = scanner.nextLine().trim();
             if (!texto.isEmpty()) {
                 return texto;
@@ -80,9 +94,7 @@ public class ValidadorEntrada {
         }
         while (true) {
             System.out.print(terminalUtil.centrarTexto(etiqueta + " (" + min + " a " + max + "): "));
-            if (!scanner.hasNextLine()) {
-                continue;
-            }
+            verificarEntradaDisponible(etiqueta);
             String texto = scanner.nextLine().trim();
             try {
                 Integer valor = Integer.valueOf(texto);
@@ -103,9 +115,7 @@ public class ValidadorEntrada {
     public void esperarOpcionCero() {
         while (true) {
             System.out.print(terminalUtil.centrarTexto("0. Volver al menú principal: "));
-            if (!scanner.hasNextLine()) {
-                continue;
-            }
+            verificarEntradaDisponible("la confirmación para volver al menú");
             String texto = scanner.nextLine().trim();
             try {
                 Integer valor = Integer.valueOf(texto);
@@ -130,9 +140,7 @@ public class ValidadorEntrada {
     public Double leerDecimalWrapper(String etiqueta, double min) {
         while (true) {
             System.out.print(terminalUtil.centrarTexto(etiqueta + " (mínimo " + min + "): "));
-            if (!scanner.hasNextLine()) {
-                continue;
-            }
+            verificarEntradaDisponible(etiqueta);
             String texto = scanner.nextLine().trim();
             try {
                 Double valor = Double.valueOf(texto);
@@ -163,9 +171,7 @@ public class ValidadorEntrada {
         E[] valores = enumClass.getEnumConstants();
         while (true) {
             System.out.print(terminalUtil.centrarTexto(etiqueta + " " + opcionesEnum(enumClass, valores) + ": "));
-            if (!scanner.hasNextLine()) {
-                continue;
-            }
+            verificarEntradaDisponible(etiqueta);
             String texto = scanner.nextLine().trim();
             if (texto.isEmpty()) {
                 System.out.println(terminalUtil.centrarTexto("Error: " + etiqueta + " no puede estar vacío."));

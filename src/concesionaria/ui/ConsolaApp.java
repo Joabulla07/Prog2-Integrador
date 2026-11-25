@@ -1,6 +1,7 @@
 package concesionaria.ui;
 
 import concesionaria.exception.DatoVehiculoInvalidoException;
+import concesionaria.exception.EntradaFinalizadaException;
 import concesionaria.exception.PersistenciaException;
 import concesionaria.exception.VehiculoNoEncontradoException;
 import concesionaria.model.Automovil;
@@ -68,7 +69,15 @@ public class ConsolaApp {
             } catch (InterruptedException e) {
             }
             mostrarMenu();
-            int opcion = entrada.leerEnteroWrapper("Opción", 0, 13);
+
+            int opcion;
+            try {
+                opcion = entrada.leerEnteroWrapper("Opción", 0, 13);
+            } catch (EntradaFinalizadaException e) {
+                mostrarEntradaFinalizada(e);
+                break;
+            }
+
             try {
                 if (opcion != 0) {
                     TerminalUtil.limpiarPantalla();
@@ -103,12 +112,31 @@ public class ConsolaApp {
                 System.out.println(terminalUtil.centrarTexto("Error de persistencia: " + e.getMessage()));
             } catch (IllegalArgumentException e) {
                 System.out.println(terminalUtil.centrarTexto("Error: " + e.getMessage()));
+            } catch (EntradaFinalizadaException e) {
+                mostrarEntradaFinalizada(e);
+                salir = true;
             }
 
-            if (opcion != 0) {
-                esperarVolverMenu();
+            if (opcion != 0 && !salir) {
+                try {
+                    esperarVolverMenu();
+                } catch (EntradaFinalizadaException e) {
+                    mostrarEntradaFinalizada(e);
+                    salir = true;
+                }
             }
         }
+    }
+
+    /**
+     * Informa que la entrada estándar se cerró y que la aplicación va a terminar.
+     *
+     * @param e excepción que describe el contexto de la lectura interrumpida
+     */
+    private void mostrarEntradaFinalizada(EntradaFinalizadaException e) {
+        System.out.println();
+        System.out.println(terminalUtil.centrarTexto(e.getMessage()));
+        System.out.println(terminalUtil.centrarTexto("La aplicación se cerrará."));
     }
 
 
@@ -299,53 +327,19 @@ public class ConsolaApp {
 
     /**
      * Muestra una lista de vehículos en formato tabular.
+     * La tabla se genera con el mismo formateador que usa el reporte directivo
+     * y se ajusta al ancho real de la terminal.
      *
      * @param vehiculos la lista de vehículos a mostrar
      * @param descripcion descripción del tipo de vehículos para mensajes
      */
     private void listar(List<Vehiculo> vehiculos, String descripcion) {
-        //terminalUtil.centrarVerticalmente(5);
         if (vehiculos == null || vehiculos.isEmpty()) {
             System.out.println(terminalUtil.centrarTexto("No hay " + descripcion + "."));
             return;
         }
 
-        System.out.println(terminalUtil.centrarTexto("\n%-12s | %-12s | %-16s | %-20s | %-4s | %-16s | %-8s | %-10s | %-14s | %-22s | %-20s | %-8s".formatted(
-                "Código", "Tipo", "Marca", "Modelo", "Año", "Color", "Estado", "Km", "Precio", "Detalle", "Categoría", "Entrega")));
-        System.out.println(terminalUtil.centrarTexto("-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------"));
-        for (Vehiculo vehiculo : vehiculos) {
-            String detalle = "";
-            if (vehiculo instanceof concesionaria.model.Automovil) {
-                detalle = ((concesionaria.model.Automovil) vehiculo).getCarroceria();
-            } else if (vehiculo instanceof concesionaria.model.Camioneta) {
-                detalle = ((concesionaria.model.Camioneta) vehiculo).getCarroceria();
-            } else if (vehiculo instanceof concesionaria.model.Motocicleta) {
-                detalle = ((concesionaria.model.Motocicleta) vehiculo).getTipoMotocicleta();
-            }
-
-            System.out.printf("%-12s | %-12s | %-16s | %-20s | %-4s | %-16s | %-8s | %-10s | %-14s | %-22s | %-20s | %-8s%n",
-                    valorOGuion(vehiculo.getCodigoInventario()),
-                    vehiculo.obtenerTipoVehiculo() != null ? vehiculo.obtenerTipoVehiculo().getDescripcion() : "-",
-                    valorOGuion(vehiculo.getMarca()),
-                    valorOGuion(vehiculo.getModelo()),
-                    vehiculo.getAnio() != null ? vehiculo.getAnio() : "-",
-                    valorOGuion(vehiculo.getColor()),
-                    vehiculo.getEstado() != null ? vehiculo.getEstado().getDescripcion() : "-",
-                    vehiculo.getKilometraje() != null ? vehiculo.getKilometraje() : "-",
-                    vehiculo.getPrecioLista() != null ? "$" + vehiculo.getPrecioLista() : "-",
-                    valorOGuion(detalle),
-                    vehiculo.obtenerCategoriaComercial(),
-                    vehiculo.esAptoEntregaInmediata() ? "Sí" : "No");
-        }
-    }
-
-    /**
-     * Retorna un guion si el valor es null o vacío, sino retorna el valor.
-     *
-     * @param valor el valor a evaluar
-     * @return el valor o "-" si es null/vacío
-     */
-    private String valorOGuion(String valor) {
-        return valor == null || valor.trim().isEmpty() ? "-" : valor;
+        String tabla = servicio.formatearTablaVehiculos(vehiculos, terminalUtil.obtenerAnchoTerminal());
+        System.out.println(terminalUtil.centrarTexto(tabla));
     }
 }

@@ -30,15 +30,27 @@ public class TerminalUtil {
 
     /**
      * Centra un texto horizontalmente según el ancho del terminal.
+     * Si el texto tiene varias líneas, centra cada una por separado.
      *
      * @param texto el texto a centrar
      * @return el texto con espacios de padding para centrarlo
      */
     public String centrarTexto(String texto) {
+        if (texto == null) {
+            return "";
+        }
         int ancho = obtenerAnchoTerminal();
-        int padding = (ancho - texto.length()) / 2;
-        if (padding < 0) padding = 0;
-        return " ".repeat(padding) + texto;
+        String[] lineas = texto.split("\n", -1);
+        StringBuilder centrado = new StringBuilder();
+        for (int i = 0; i < lineas.length; i++) {
+            if (i > 0) {
+                centrado.append('\n');
+            }
+            String linea = lineas[i];
+            int padding = Math.max(0, (ancho - linea.length()) / 2);
+            centrado.append(" ".repeat(padding)).append(linea);
+        }
+        return centrado.toString();
     }
 
     /**

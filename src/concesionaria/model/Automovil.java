@@ -94,7 +94,7 @@ public class Automovil extends Vehiculo {
         ficha.append(getModelo() != null ? getModelo() : "[sin modelo]").append(" ");
         ficha.append(getAnio() != null ? getAnio() : "[sin año]");
         ficha.append(" | Estado: ").append(getEstado() != null ? getEstado().getDescripcion() : "[sin estado]");
-        ficha.append(" | Precio: $").append(getPrecioLista() != null ? getPrecioLista() : "[sin precio]");
+        ficha.append(" | Precio: ").append(getPrecioLista() != null ? getPrecioFormateado() : "[sin precio]");
         ficha.append(" | Código: ").append(getCodigoInventario() != null ? getCodigoInventario() : "[sin código]");
         ficha.append(" | Carrocería: ").append(carroceria != null ? carroceria : "[sin especificar]");
         return ficha.toString();
@@ -109,6 +109,6 @@ public class Automovil extends Vehiculo {
     @Override
     public String toString() {
         String carroceriaVal = carroceria != null ? carroceria : "[sin carrocería]";
-        return super.toString() + ", carrocería=" + carroceriaVal + "]";
+        return completarToString("carrocería=" + carroceriaVal);
     }
 }
