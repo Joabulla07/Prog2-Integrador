@@ -47,6 +47,13 @@ public class MssqlVehiculoRepository implements VehiculoRepository {
         this(ConexionDB.sql2o);
     }
 
+    /**
+     * Guarda un nuevo vehículo en la base de datos y le asigna el código de inventario generado.
+     *
+     * @param vehiculo el vehículo a guardar
+     * @return el vehículo guardado con el código de inventario asignado
+     * @throws PersistenciaException si ocurre un error al guardar en la base de datos
+     */
     @Override
     public Vehiculo guardar(Vehiculo vehiculo) {
         String insertSql = "INSERT INTO Vehiculos (tipo_vehiculo, marca, modelo, anio, color, estado_unidad, kilometraje, precio_lista, carroceria, tipo_motocicleta) " +
@@ -105,6 +112,13 @@ public class MssqlVehiculoRepository implements VehiculoRepository {
         }
     }
 
+    /**
+     * Busca un vehículo por su código de inventario.
+     *
+     * @param codigo el código de inventario del vehículo
+     * @return el vehículo encontrado o null si no existe
+     * @throws PersistenciaException si ocurre un error al buscar en la base de datos
+     */
     @Override
     public Vehiculo buscarPorCodigo(String codigo) {
         String sql = "SELECT * FROM Vehiculos WHERE codigo_inventario = :codigo";
@@ -123,6 +137,12 @@ public class MssqlVehiculoRepository implements VehiculoRepository {
         }
     }
 
+    /**
+     * Lista todos los vehículos almacenados en la base de datos.
+     *
+     * @return lista de todos los vehículos
+     * @throws PersistenciaException si ocurre un error al listar los vehículos
+     */
     @Override
     public List<Vehiculo> listarTodos() {
         String sql = "SELECT * FROM Vehiculos";
@@ -140,6 +160,13 @@ public class MssqlVehiculoRepository implements VehiculoRepository {
         }
     }
 
+    /**
+     * Elimina un vehículo de la base de datos por su código de inventario.
+     *
+     * @param codigo el código de inventario del vehículo a eliminar
+     * @return true si se eliminó el vehículo, false si no existía
+     * @throws PersistenciaException si ocurre un error al eliminar el vehículo
+     */
     @Override
     public boolean eliminarPorCodigo(String codigo) {
         String sql = "DELETE FROM Vehiculos WHERE codigo_inventario = :codigo";
@@ -155,6 +182,13 @@ public class MssqlVehiculoRepository implements VehiculoRepository {
         }
     }
 
+    /**
+     * Lista todos los vehículos que tienen un estado específico.
+     *
+     * @param estado el estado de unidad a filtrar
+     * @return lista de vehículos con el estado especificado
+     * @throws PersistenciaException si ocurre un error al listar los vehículos
+     */
     @Override
     public List<Vehiculo> listarPorEstado(EstadoUnidad estado) {
         String sql = "SELECT * FROM Vehiculos WHERE estado_unidad = :estado";
@@ -173,6 +207,13 @@ public class MssqlVehiculoRepository implements VehiculoRepository {
         }
     }
 
+    /**
+     * Lista todos los vehículos de un tipo específico.
+     *
+     * @param tipo el tipo de vehículo a filtrar
+     * @return lista de vehículos del tipo especificado
+     * @throws PersistenciaException si ocurre un error al listar los vehículos
+     */
     @Override
     public List<Vehiculo> listarPorTipo(TipoVehiculo tipo) {
         String sql = "SELECT * FROM Vehiculos WHERE tipo_vehiculo = :tipo";
@@ -199,7 +240,7 @@ public class MssqlVehiculoRepository implements VehiculoRepository {
      * @return la instancia de la subclase correspondiente
      * @throws SQLException si hay error al leer del ResultSet
      */
-    private Vehiculo mapearVehiculo(java.sql.ResultSet resultado) throws SQLException {
+    private Vehiculo mapearVehiculo(ResultSet resultado) throws SQLException {
         String tipoVehiculoStr = resultado.getString("tipo_vehiculo");
         TipoVehiculo tipoVehiculo = TipoVehiculo.fromString(tipoVehiculoStr);
         String estadoUnidadStr = resultado.getString("estado_unidad");

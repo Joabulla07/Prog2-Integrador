@@ -26,62 +26,46 @@ public class ConsolaApp {
 
     private final ConcesionariaService servicio;
     private final ValidadorEntrada entrada;
-    private final Terminal terminal;
+    private final TerminalUtil terminalUtil;
 
+    /**
+     * Constructor que inicializa la aplicación de consola.
+     *
+     * @param servicio el servicio de concesionaria a utilizar
+     * @param entrada el validador de entrada para leer datos del usuario
+     * @throws IllegalArgumentException si servicio o entrada son null
+     * @throws RuntimeException si no se puede inicializar el terminal
+     */
     public ConsolaApp(ConcesionariaService servicio, ValidadorEntrada entrada) {
         if (servicio == null) throw new IllegalArgumentException("El servicio no puede ser null");
         if (entrada == null) throw new IllegalArgumentException("El validador no puede ser null");
         this.servicio = servicio;
+        
+        TerminalUtil tempTerminalUtil;
+        ValidadorEntrada tempEntrada;
+        
         try {
-            this.terminal = TerminalBuilder.builder().build();
-            this.entrada = new ValidadorEntrada(new java.util.Scanner(System.in), terminal);
+            Terminal terminal = TerminalBuilder.builder().build();
+            tempTerminalUtil = new TerminalUtil(terminal);
+            tempEntrada = new ValidadorEntrada(new java.util.Scanner(System.in), tempTerminalUtil);
         } catch (Exception e) {
-            throw new RuntimeException("No se pudo inicializar el terminal", e);
+            tempTerminalUtil = new TerminalUtil();
+            tempEntrada = new ValidadorEntrada(new java.util.Scanner(System.in), tempTerminalUtil);
         }
+        
+        this.terminalUtil = tempTerminalUtil;
+        this.entrada = tempEntrada;
     }
 
-    private String centrarTexto(String texto) {
-        int ancho = obtenerAnchoTerminal();
-        int padding = (ancho - texto.length()) / 2;
-        if (padding < 0) padding = 0;
-        return " ".repeat(padding) + texto;
-    }
 
-    private void centrarVerticalmente(int lineasContenido) {
-        int altura = obtenerAlturaTerminal();
-        int paddingVertical = (altura - lineasContenido) / 2;
-        if (paddingVertical < 0) paddingVertical = 0;
-        for (int i = 0; i < paddingVertical; i++) {
-            System.out.println();
-        }
-    }
-
-    private int obtenerAnchoTerminal() {
-        try {
-            int ancho = terminal.getWidth();
-            if (ancho > 0 && ancho < 10000) {
-                return ancho;
-            }
-        } catch (Exception e) {
-        }
-        return 80;
-    }
-
-    private int obtenerAlturaTerminal() {
-        try {
-            int altura = terminal.getHeight();
-            if (altura > 0 && altura < 10000) {
-                return altura;
-            }
-        } catch (Exception e) {
-        }
-        return 24;
-    }
-
+    /**
+     * Inicia el bucle principal de la aplicación de consola.
+     * Muestra el menú y procesa las opciones del usuario hasta que se selecciona salir.
+     */
     public void iniciar() {
         boolean salir = false;
         while (!salir) {
-            limpiarPantalla();
+            TerminalUtil.limpiarPantalla();
             try {
                 Thread.sleep(100);
             } catch (InterruptedException e) {
@@ -90,7 +74,7 @@ public class ConsolaApp {
             int opcion = entrada.leerEnteroWrapper("Opción", 0, 13);
             try {
                 if (opcion != 0) {
-                    limpiarPantalla();
+                    TerminalUtil.limpiarPantalla();
                 }
                 switch (opcion) {
                     case 1: registrarAutomovil(); break;
@@ -102,27 +86,27 @@ public class ConsolaApp {
                     case 7: filtrarPorTipo(); break;
                     case 8: buscarPorCodigo(); break;
                     case 9: eliminarPorCodigo(); break;
-                    case 10: mostrarTitulo("REPORTE PARA DIRECTIVOS"); System.out.println(centrarTexto(servicio.generarReporteDirectivos())); break;
+                    case 10: mostrarTitulo("REPORTE PARA DIRECTIVOS"); System.out.println(terminalUtil.centrarTexto(servicio.generarReporteDirectivos())); break;
                     case 11: ordenarPorAnio(); break;
                     case 12: ordenarPorPrecio(); break;
                     case 13: ordenarPorMarcaModelo(); break;
                     case 0:
                         salir = true;
-                        limpiarPantalla();
-                        System.out.println(centrarTexto("Saliendo de la aplicación."));
+                        TerminalUtil.limpiarPantalla();
+                        System.out.println(terminalUtil.centrarTexto("Saliendo de la aplicación."));
                         System.exit(0);
                         break;
                     default:
-                        System.out.println(centrarTexto("Opción fuera del rango disponible."));
+                        System.out.println(terminalUtil.centrarTexto("Opción fuera del rango disponible."));
                 }
             } catch (DatoVehiculoInvalidoException e) {
-                System.out.println(centrarTexto("Datos inválidos: " + e.getMessage()));
+                System.out.println(terminalUtil.centrarTexto("Datos inválidos: " + e.getMessage()));
             } catch (VehiculoNoEncontradoException e) {
-                System.out.println(centrarTexto("No encontrado: " + e.getMessage()));
+                System.out.println(terminalUtil.centrarTexto("No encontrado: " + e.getMessage()));
             } catch (PersistenciaException e) {
-                System.out.println(centrarTexto("Error de persistencia: " + e.getMessage()));
+                System.out.println(terminalUtil.centrarTexto("Error de persistencia: " + e.getMessage()));
             } catch (IllegalArgumentException e) {
-                System.out.println(centrarTexto("Error: " + e.getMessage()));
+                System.out.println(terminalUtil.centrarTexto("Error: " + e.getMessage()));
             }
 
             if (opcion != 0) {
@@ -131,64 +115,68 @@ public class ConsolaApp {
         }
     }
 
-    public static void limpiarPantalla() {
-        try {
-            String os = System.getProperty("os.name", "").toLowerCase();
-            if (os.contains("win")) {
-                new ProcessBuilder("cmd", "/c", "cls").inheritIO().start().waitFor();
-            } else {
-                new ProcessBuilder("clear").inheritIO().start().waitFor();
-            }
-        } catch (Exception e) {
-            System.out.print("\033[H\033[2J");
-            System.out.flush();
-        }
-    }
 
+    /**
+     * Espera a que el usuario presione 0 para volver al menú principal.
+     */
     private void esperarVolverMenu() {
         System.out.println();
         entrada.esperarOpcionCero();
-        limpiarPantalla();
+        TerminalUtil.limpiarPantalla();
     }
 
+    /**
+     * Muestra el menú principal de la aplicación centrado en el terminal.
+     */
     private void mostrarMenu() {
         String cyan = "\u001B[36m";
         String reset = "\u001B[0m";
 
-        centrarVerticalmente(17);
+        terminalUtil.centrarVerticalmente(17);
 
-        System.out.println(cyan + centrarTexto("════════════════════════════════════════════════════════════════════════════════") + reset);
-        System.out.println(cyan + centrarTexto("                              CONCESIONARIA MULTIMARCAS                                  ") + reset);
-        System.out.println(cyan + centrarTexto("                                         TFI                                              ") + reset);
-        System.out.println(cyan + centrarTexto("════════════════════════════════════════════════════════════════════════════════") + reset);
-        System.out.println(centrarTexto("=== MENÚ PRINCIPAL ==="));
-        System.out.println(centrarTexto("1. Registrar Automóvil"));
-        System.out.println(centrarTexto("2. Registrar Camioneta"));
-        System.out.println(centrarTexto("3. Registrar Motocicleta"));
-        System.out.println(centrarTexto("4. Listar todos los vehículos"));
-        System.out.println(centrarTexto("5. Listar unidades 0 km"));
-        System.out.println(centrarTexto("6. Listar unidades usadas"));
-        System.out.println(centrarTexto("7. Filtrar por tipo de vehículo"));
-        System.out.println(centrarTexto("8. Buscar vehículo por código"));
-        System.out.println(centrarTexto("9. Eliminar vehículo por código"));
-        System.out.println(centrarTexto("10. Ver reporte para directivos"));
-        System.out.println(centrarTexto("11. Listar ordenados por año"));
-        System.out.println(centrarTexto("12. Listar ordenados por precio"));
-        System.out.println(centrarTexto("13. Listar ordenados por marca y modelo"));
-        System.out.println(centrarTexto("0. Salir"));
+        System.out.println(cyan + terminalUtil.centrarTexto("════════════════════════════════════════════════════════════════════════════════") + reset);
+        System.out.println(cyan + terminalUtil.centrarTexto("                              CONCESIONARIA MULTIMARCAS                                  ") + reset);
+        System.out.println(cyan + terminalUtil.centrarTexto("                                         TFI                                              ") + reset);
+        System.out.println(cyan + terminalUtil.centrarTexto("════════════════════════════════════════════════════════════════════════════════") + reset);
+        System.out.println(terminalUtil.centrarTexto("=== MENÚ PRINCIPAL ==="));
+        System.out.println(terminalUtil.centrarTexto("1. Registrar Automóvil"));
+        System.out.println(terminalUtil.centrarTexto("2. Registrar Camioneta"));
+        System.out.println(terminalUtil.centrarTexto("3. Registrar Motocicleta"));
+        System.out.println(terminalUtil.centrarTexto("4. Listar todos los vehículos"));
+        System.out.println(terminalUtil.centrarTexto("5. Listar unidades 0 km"));
+        System.out.println(terminalUtil.centrarTexto("6. Listar unidades usadas"));
+        System.out.println(terminalUtil.centrarTexto("7. Filtrar por tipo de vehículo"));
+        System.out.println(terminalUtil.centrarTexto("8. Buscar vehículo por código"));
+        System.out.println(terminalUtil.centrarTexto("9. Eliminar vehículo por código"));
+        System.out.println(terminalUtil.centrarTexto("10. Ver reporte para directivos"));
+        System.out.println(terminalUtil.centrarTexto("11. Listar ordenados por año"));
+        System.out.println(terminalUtil.centrarTexto("12. Listar ordenados por precio"));
+        System.out.println(terminalUtil.centrarTexto("13. Listar ordenados por marca y modelo"));
+        System.out.println(terminalUtil.centrarTexto("0. Salir"));
     }
 
+    /**
+     * Muestra un título centrado con bordes decorativos.
+     *
+     * @param titulo el título a mostrar
+     */
     private void mostrarTitulo(String titulo) {
         String cyan = "\u001B[36m";
         String reset = "\u001B[0m";
         System.out.println();
-        System.out.println(cyan + centrarTexto("════════════════════════════════════════════════════════════════════════════════") + reset);
-        System.out.println(cyan + centrarTexto("  " + titulo + "  ") + reset);
-        System.out.println(cyan + centrarTexto("════════════════════════════════════════════════════════════════════════════════") + reset);
+        System.out.println(cyan + terminalUtil.centrarTexto("════════════════════════════════════════════════════════════════════════════════") + reset);
+        System.out.println(cyan + terminalUtil.centrarTexto("  " + titulo + "  ") + reset);
+        System.out.println(cyan + terminalUtil.centrarTexto("════════════════════════════════════════════════════════════════════════════════") + reset);
     }
 
+    /**
+     * Procesa el registro de un nuevo automóvil.
+     * Solicita los datos al usuario y registra el vehículo en el sistema.
+     *
+     * @throws DatoVehiculoInvalidoException si los datos ingresados son inválidos
+     */
     private void registrarAutomovil() throws DatoVehiculoInvalidoException {
-        centrarVerticalmente(30);
+        terminalUtil.centrarVerticalmente(30);
         mostrarTitulo("REGISTRAR AUTOMÓVIL");
         String marca = entrada.leerTextoObligatorio("Marca");
         String modelo = entrada.leerTextoObligatorio("Modelo");
@@ -199,11 +187,17 @@ public class ConsolaApp {
         Double precio = entrada.leerDecimalWrapper("Precio de lista", 0.01);
         String carroceria = entrada.leerTextoObligatorio("Carrocería");
         Vehiculo registrado = servicio.registrarVehiculo(new Automovil(marca, modelo, anio, color, estado, kilometraje, precio, carroceria));
-        System.out.println(centrarTexto("Automóvil registrado exitosamente. Código: " + registrado.getCodigoInventario()));
+        System.out.println(terminalUtil.centrarTexto("Automóvil registrado exitosamente. Código: " + registrado.getCodigoInventario()));
     }
 
+    /**
+     * Procesa el registro de una nueva camioneta.
+     * Solicita los datos al usuario y registra el vehículo en el sistema.
+     *
+     * @throws DatoVehiculoInvalidoException si los datos ingresados son inválidos
+     */
     private void registrarCamioneta() throws DatoVehiculoInvalidoException {
-        centrarVerticalmente(30);
+        terminalUtil.centrarVerticalmente(30);
         mostrarTitulo("REGISTRAR CAMIONETA");
         String marca = entrada.leerTextoObligatorio("Marca");
         String modelo = entrada.leerTextoObligatorio("Modelo");
@@ -214,11 +208,17 @@ public class ConsolaApp {
         Double precio = entrada.leerDecimalWrapper("Precio de lista", 0.01);
         String carroceria = entrada.leerTextoObligatorio("Carrocería");
         Vehiculo registrado = servicio.registrarVehiculo(new Camioneta(marca, modelo, anio, color, estado, kilometraje, precio, carroceria));
-        System.out.println(centrarTexto("Camioneta registrada exitosamente. Código: " + registrado.getCodigoInventario()));
+        System.out.println(terminalUtil.centrarTexto("Camioneta registrada exitosamente. Código: " + registrado.getCodigoInventario()));
     }
 
+    /**
+     * Procesa el registro de una nueva motocicleta.
+     * Solicita los datos al usuario y registra el vehículo en el sistema.
+     *
+     * @throws DatoVehiculoInvalidoException si los datos ingresados son inválidos
+     */
     private void registrarMotocicleta() throws DatoVehiculoInvalidoException {
-        centrarVerticalmente(30);
+        terminalUtil.centrarVerticalmente(30);
         mostrarTitulo("REGISTRAR MOTOCICLETA");
         String marca = entrada.leerTextoObligatorio("Marca");
         String modelo = entrada.leerTextoObligatorio("Modelo");
@@ -229,66 +229,94 @@ public class ConsolaApp {
         Double precio = entrada.leerDecimalWrapper("Precio de lista", 0.01);
         String tipoMotocicleta = entrada.leerTextoObligatorio("Tipo de motocicleta");
         Vehiculo registrado = servicio.registrarVehiculo(new Motocicleta(marca, modelo, anio, color, estado, kilometraje, precio, tipoMotocicleta));
-        System.out.println(centrarTexto("Motocicleta registrada exitosamente. Código: " + registrado.getCodigoInventario()));
+        System.out.println(terminalUtil.centrarTexto("Motocicleta registrada exitosamente. Código: " + registrado.getCodigoInventario()));
     }
 
+    /**
+     * Filtra y lista vehículos por su tipo.
+     */
     private void filtrarPorTipo() {
-        centrarVerticalmente(30);
+        terminalUtil.centrarVerticalmente(30);
         mostrarTitulo("FILTRAR POR TIPO DE VEHÍCULO");
         TipoVehiculo tipo = entrada.leerEnum("Tipo de vehículo", TipoVehiculo.class);
         listar(servicio.listarPorTipo(tipo), "vehículos de tipo " + tipo.getDescripcion());
     }
 
+    /**
+     * Busca un vehículo por su código de inventario.
+     *
+     * @throws VehiculoNoEncontradoException si no existe el vehículo
+     */
     private void buscarPorCodigo() throws VehiculoNoEncontradoException {
-        centrarVerticalmente(30);
+        terminalUtil.centrarVerticalmente(30);
         mostrarTitulo("BUSCAR VEHÍCULO POR CÓDIGO");
         String codigo = entrada.leerTextoObligatorio("Código de inventario");
         Vehiculo vehiculo = servicio.obtenerVehiculoPorCodigo(codigo);
         listar(Collections.singletonList(vehiculo), "vehículo solicitado");
     }
 
+    /**
+     * Lista todos los vehículos ordenados por año ascendente.
+     */
     private void ordenarPorAnio() {
-        centrarVerticalmente(30);
+        terminalUtil.centrarVerticalmente(30);
         mostrarTitulo("LISTAR VEHÍCULOS ORDENADOS POR AÑO");
         List<Vehiculo> vehiculos = new ArrayList<>(servicio.listarTodos());
         vehiculos.sort(ComparadoresVehiculo.POR_ANIO_ASC);
         listar(vehiculos, "vehículos ordenados por año");
     }
 
+    /**
+     * Lista todos los vehículos ordenados por precio ascendente.
+     */
     private void ordenarPorPrecio() {
-        centrarVerticalmente(30);
+        terminalUtil.centrarVerticalmente(30);
         mostrarTitulo("LISTAR VEHÍCULOS ORDENADOS POR PRECIO");
         List<Vehiculo> vehiculos = new ArrayList<>(servicio.listarTodos());
         vehiculos.sort(ComparadoresVehiculo.POR_PRECIO_ASC);
         listar(vehiculos, "vehículos ordenados por precio");
     }
 
+    /**
+     * Lista todos los vehículos ordenados por marca y modelo.
+     */
     private void ordenarPorMarcaModelo() {
-        centrarVerticalmente(30);
+        terminalUtil.centrarVerticalmente(30);
         mostrarTitulo("LISTAR VEHÍCULOS ORDENADOS POR MARCA Y MODELO");
         List<Vehiculo> vehiculos = new ArrayList<>(servicio.listarTodos());
         vehiculos.sort(ComparadoresVehiculo.POR_MARCA_MODELO);
         listar(vehiculos, "vehículos ordenados por marca y modelo");
     }
 
+    /**
+     * Elimina un vehículo por su código de inventario.
+     *
+     * @throws VehiculoNoEncontradoException si no existe el vehículo
+     */
     private void eliminarPorCodigo() throws VehiculoNoEncontradoException {
-        centrarVerticalmente(30);
+        terminalUtil.centrarVerticalmente(30);
         mostrarTitulo("ELIMINAR VEHÍCULO POR CÓDIGO");
         String codigo = entrada.leerTextoObligatorio("Código de inventario");
         servicio.eliminarVehiculo(codigo);
-        System.out.println(centrarTexto("Vehículo eliminado: " + codigo));
+        System.out.println(terminalUtil.centrarTexto("Vehículo eliminado: " + codigo));
     }
 
+    /**
+     * Muestra una lista de vehículos en formato tabular.
+     *
+     * @param vehiculos la lista de vehículos a mostrar
+     * @param descripcion descripción del tipo de vehículos para mensajes
+     */
     private void listar(List<Vehiculo> vehiculos, String descripcion) {
-        //centrarVerticalmente(5);
+        //terminalUtil.centrarVerticalmente(5);
         if (vehiculos == null || vehiculos.isEmpty()) {
-            System.out.println(centrarTexto("No hay " + descripcion + "."));
+            System.out.println(terminalUtil.centrarTexto("No hay " + descripcion + "."));
             return;
         }
 
-        System.out.println(centrarTexto("\n%-12s | %-12s | %-16s | %-20s | %-4s | %-16s | %-8s | %-10s | %-14s | %-22s | %-20s | %-8s".formatted(
+        System.out.println(terminalUtil.centrarTexto("\n%-12s | %-12s | %-16s | %-20s | %-4s | %-16s | %-8s | %-10s | %-14s | %-22s | %-20s | %-8s".formatted(
                 "Código", "Tipo", "Marca", "Modelo", "Año", "Color", "Estado", "Km", "Precio", "Detalle", "Categoría", "Entrega")));
-        System.out.println(centrarTexto("-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------"));
+        System.out.println(terminalUtil.centrarTexto("-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------"));
         for (Vehiculo vehiculo : vehiculos) {
             String detalle = "";
             if (vehiculo instanceof concesionaria.model.Automovil) {
@@ -315,6 +343,12 @@ public class ConsolaApp {
         }
     }
 
+    /**
+     * Retorna un guion si el valor es null o vacío, sino retorna el valor.
+     *
+     * @param valor el valor a evaluar
+     * @return el valor o "-" si es null/vacío
+     */
     private String valorOGuion(String valor) {
         return valor == null || valor.trim().isEmpty() ? "-" : valor;
     }

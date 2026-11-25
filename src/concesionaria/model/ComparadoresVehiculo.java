@@ -8,10 +8,17 @@ import java.util.Locale;
  */
 public final class ComparadoresVehiculo {
 
+    /**
+     * Constructor privado para evitar instanciación.
+     * Esta clase solo contiene comparadores estáticos.
+     */
     private ComparadoresVehiculo() {
     }
 
-    /** Compara vehículos por precio ascendente; los valores nulos quedan al final. */
+    /**
+     * Compara vehículos por precio ascendente.
+     * Los valores nulos quedan al final de la ordenación.
+     */
     public static final Comparator<Vehiculo> POR_PRECIO_ASC = (uno, otro) -> {
         if (uno == otro) {
             return 0;
@@ -34,7 +41,10 @@ public final class ComparadoresVehiculo {
         return uno.getPrecioLista().compareTo(otro.getPrecioLista());
     };
 
-    /** Compara vehículos por año ascendente; los valores nulos quedan al final. */
+    /**
+     * Compara vehículos por año ascendente.
+     * Los valores nulos quedan al final de la ordenación.
+     */
     public static final Comparator<Vehiculo> POR_ANIO_ASC = (uno, otro) -> {
         if (uno == otro) {
             return 0;
@@ -57,7 +67,10 @@ public final class ComparadoresVehiculo {
         return uno.getAnio().compareTo(otro.getAnio());
     };
 
-    /** Compara vehículos por marca y luego por modelo, sin distinguir mayúsculas. */
+    /**
+     * Compara vehículos por marca y luego por modelo.
+     * La comparación no distingue mayúsculas/minúsculas y los valores nulos quedan al final.
+     */
     public static final Comparator<Vehiculo> POR_MARCA_MODELO =
             Comparator.comparing(
                     (Vehiculo vehiculo) -> vehiculo == null || vehiculo.getMarca() == null

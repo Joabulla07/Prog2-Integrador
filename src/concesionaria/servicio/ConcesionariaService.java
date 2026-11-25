@@ -21,6 +21,12 @@ public class ConcesionariaService {
 
     private final VehiculoRepository repositorio;
 
+    /**
+     * Crea una nueva instancia del servicio con el repositorio especificado.
+     *
+     * @param repositorio el repositorio de vehículos a utilizar
+     * @throws IllegalArgumentException si el repositorio es null
+     */
     public ConcesionariaService(VehiculoRepository repositorio) {
         if (repositorio == null) {
             throw new IllegalArgumentException("El repositorio no puede ser null");
@@ -28,12 +34,26 @@ public class ConcesionariaService {
         this.repositorio = repositorio;
     }
 
+    /**
+     * Registra un nuevo vehículo en el sistema.
+     * Normaliza los textos, valida los datos y persiste el vehículo.
+     *
+     * @param vehiculo el vehículo a registrar
+     * @return el vehículo registrado con código de inventario asignado
+     * @throws DatoVehiculoInvalidoException si los datos del vehículo son inválidos
+     */
     public Vehiculo registrarVehiculo(Vehiculo vehiculo) throws DatoVehiculoInvalidoException {
         normalizarTextosVehiculo(vehiculo);
         validarVehiculo(vehiculo);
         return repositorio.guardar(vehiculo);
     }
 
+    /**
+     * Genera un reporte directivo con estadísticas y listado de todos los vehículos.
+     * Incluye conteos por tipo y estado, y un detalle completo de cada vehículo.
+     *
+     * @return el reporte formateado como string
+     */
     public String generarReporteDirectivos() {
         List<Vehiculo> vehiculos = repositorio.listarTodos();
         int automoviles = 0;
@@ -102,10 +122,22 @@ public class ConcesionariaService {
         return reporte.toString();
     }
 
+    /**
+     * Lista todos los vehículos registrados en el sistema.
+     *
+     * @return lista de todos los vehículos
+     */
     public List<Vehiculo> listarTodos() {
         return repositorio.listarTodos();
     }
 
+    /**
+     * Lista todos los vehículos que tienen un estado específico.
+     *
+     * @param estado el estado de unidad a filtrar
+     * @return lista de vehículos con el estado especificado
+     * @throws IllegalArgumentException si el estado es null
+     */
     public List<Vehiculo> listarPorEstado(EstadoUnidad estado) {
         if (estado == null) {
             throw new IllegalArgumentException("El estado no puede ser null");
@@ -113,6 +145,13 @@ public class ConcesionariaService {
         return repositorio.listarPorEstado(estado);
     }
 
+    /**
+     * Lista todos los vehículos de un tipo específico.
+     *
+     * @param tipo el tipo de vehículo a filtrar
+     * @return lista de vehículos del tipo especificado
+     * @throws IllegalArgumentException si el tipo es null
+     */
     public List<Vehiculo> listarPorTipo(TipoVehiculo tipo) {
         if (tipo == null) {
             throw new IllegalArgumentException("El tipo no puede ser null");
@@ -120,6 +159,13 @@ public class ConcesionariaService {
         return repositorio.listarPorTipo(tipo);
     }
 
+    /**
+     * Busca un vehículo por su código de inventario.
+     *
+     * @param codigo el código de inventario del vehículo
+     * @return el vehículo encontrado
+     * @throws VehiculoNoEncontradoException si no existe un vehículo con ese código
+     */
     public Vehiculo obtenerVehiculoPorCodigo(String codigo) throws VehiculoNoEncontradoException {
         Vehiculo vehiculo = repositorio.buscarPorCodigo(codigo);
         if (vehiculo == null) {
@@ -128,6 +174,13 @@ public class ConcesionariaService {
         return vehiculo;
     }
 
+    /**
+     * Elimina un vehículo del sistema por su código de inventario.
+     *
+     * @param codigo el código de inventario del vehículo a eliminar
+     * @return true si se eliminó exitosamente
+     * @throws VehiculoNoEncontradoException si no existe un vehículo con ese código
+     */
     public boolean eliminarVehiculo(String codigo) throws VehiculoNoEncontradoException {
         boolean eliminado = repositorio.eliminarPorCodigo(codigo);
         if (!eliminado) {
@@ -136,6 +189,12 @@ public class ConcesionariaService {
         return true;
     }
 
+    /**
+     * Normaliza los campos de texto de un vehículo (marca, modelo, color, etc).
+     * Aplica reglas de capitalización y elimina espacios extra.
+     *
+     * @param vehiculo el vehículo a normalizar
+     */
     private void normalizarTextosVehiculo(Vehiculo vehiculo) {
         if (vehiculo == null) {
             return;
@@ -157,6 +216,12 @@ public class ConcesionariaService {
         }
     }
 
+    /**
+     * Normaliza un texto aplicando capitalización de título y manteniendo siglas en mayúsculas.
+     *
+     * @param texto el texto a normalizar
+     * @return el texto normalizado
+     */
     private String normalizarTexto(String texto) {
         if (texto == null) {
             return null;
@@ -187,6 +252,12 @@ public class ConcesionariaService {
         return normalizado.toString();
     }
 
+    /**
+     * Determina si una palabra es una sigla conocida que debe mantenerse en mayúsculas.
+     *
+     * @param palabra la palabra a evaluar
+     * @return true si es una sigla conocida, false en caso contrario
+     */
     private boolean esSigla(String palabra) {
         String limpia = palabra.toUpperCase(Locale.ROOT);
         return limpia.equals("SUV")
@@ -199,6 +270,12 @@ public class ConcesionariaService {
                 || limpia.equals("4X4");
     }
 
+    /**
+     * Valida que todos los datos del vehículo sean correctos según las reglas de negocio.
+     *
+     * @param vehiculo el vehículo a validar
+     * @throws DatoVehiculoInvalidoException si algún dato es inválido
+     */
     private void validarVehiculo(Vehiculo vehiculo) throws DatoVehiculoInvalidoException {
         if (vehiculo == null) {
             throw new DatoVehiculoInvalidoException("El vehículo no puede ser null", "vehiculo", "null");
@@ -253,10 +330,24 @@ public class ConcesionariaService {
         }
     }
 
+    /**
+     * Retorna un guion si el valor es null o vacío, sino retorna el valor.
+     * Utilizado para formatear el reporte directivo.
+     *
+     * @param valor el valor a evaluar
+     * @return el valor o "-" si es null/vacío
+     */
     private String valorOGuion(String valor) {
         return valor == null || valor.trim().isEmpty() ? "-" : valor;
     }
 
+    /**
+     * Valida que un campo de texto no sea null ni esté vacío.
+     *
+     * @param campo el nombre del campo para el mensaje de error
+     * @param valor el valor a validar
+     * @throws DatoVehiculoInvalidoException si el valor es null o vacío
+     */
     private void validarObligatorio(String campo, String valor) throws DatoVehiculoInvalidoException {
         if (valor == null || valor.trim().isEmpty()) {
             throw new DatoVehiculoInvalidoException("El campo " + campo + " no puede estar vacío", campo, String.valueOf(valor));
